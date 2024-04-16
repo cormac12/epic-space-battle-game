@@ -1,6 +1,5 @@
 import pygame
 from player import Player
-import math
 import globals
 from enemy import Enemy
 import random
