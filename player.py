@@ -12,8 +12,8 @@ class Player:
                                 500 - self.display_image.get_height()/2,
                                 self.display_image.get_width(),
                                 self.display_image.get_height())
-        self.x = 750 - self.display_image.get_width()/2
-        self.y = 500 - self.display_image.get_height()/2
+        self.x = 750
+        self.y = 500
         self.vx = 0
         self.vy = 0
 

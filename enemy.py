@@ -21,10 +21,10 @@ class Enemy:
 
     def rotate(self, direction):
         if direction == "clockwise":
-            self.angle -= 1
+            self.angle -= 5
 
         elif direction == "counterclockwise":
-            self.angle += 1
+            self.angle += 5
 
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.original_image, self.angle)

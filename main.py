@@ -29,7 +29,7 @@ camera_pos = (0,0)
 globals.globals_dict["player_x"] = p.x
 globals.globals_dict["player_y"] = p.y
 
-enemies = [Enemy(750, 500, 0, 0), Enemy(850, 550, 0, 0)]
+enemies = [Enemy(0, 0, 0, 0), Enemy(100, 100, 0, 0)]
 
 clock = pygame.time.Clock()
 
@@ -48,6 +48,8 @@ while run:
         p.accelerate()
 
     p.update_pos()
+    # camera_pos = (p.x + p.rect.width/2 - 750, p.y + p.rect.height/2 - 500)
+    camera_pos = (p.x - 750, p.y - 500)
 
     for i in enemies:
         if random.randint(1,1) == 1:
@@ -57,13 +59,6 @@ while run:
     for i in enemies:
         i.update_pos()
 
-
-    globals.globals_dict["player_x"] = p.x
-    globals.globals_dict["player_y"] = p.y
-
-    # e.rect = pygame.Rect(e.x - globals.globals_dict["player_x"], e.y - globals.globals_dict["player_y"],
-    #                         e.display_image.get_width(), e.display_image.get_height())
-
     # --- Main event loop
     for event in pygame.event.get():  # User did something
         if event.type == pygame.KEYDOWN:
@@ -72,8 +67,8 @@ while run:
         if event.type == pygame.QUIT:  # If user clicked close
             run = False
 
-    display_x = my_font.render(str(p.x), True, (255,255,255))
-    display_y = my_font.render(str(p.y), True, (255,255,255))
+    display_x = my_font.render(str(camera_pos[0]), True, (255,255,255))
+    display_y = my_font.render(str(camera_pos[1]), True, (255,255,255))
 
     screen.fill((0, 0, 0))
     # ------Blit Zone Start------
@@ -81,8 +76,8 @@ while run:
     screen.blit(p.display_image, p.rect)
 
     for i in enemies:
-        screen.blit(i.display_image, pygame.Rect(i.x - p.x - i.display_image.get_width()/2,
-                                                 i.y - p.y - i.display_image.get_height()/2, i.display_image.get_width(),
+        screen.blit(i.display_image, pygame.Rect(i.x - camera_pos[0] - i.display_image.get_width()/2,
+                                                 i.y - camera_pos[1] - i.display_image.get_height()/2, i.display_image.get_width(),
                                                  i.display_image.get_height()))
     screen.blit(display_x, (0, 0))
     screen.blit(display_y, (0, 15))
