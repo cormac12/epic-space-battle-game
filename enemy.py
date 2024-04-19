@@ -30,9 +30,20 @@ class Enemy:
         self.display_image = pygame.transform.rotate(self.original_image, self.angle)
 
     def accelerate(self):
-        self.vy -= math.cos(math.radians(self.angle)) * .1
-        self.vx -= math.sin(math.radians(self.angle)) * .1
+        self.vy -= math.cos(math.radians(self.angle)) * .0
+        self.vx -= math.sin(math.radians(self.angle)) * .0
 
     def update_pos(self):
         self.x += self.vx
         self.y += self.vy
+
+    def get_angle_to_player(self, player_x, player_y):
+        if self.x > player_x and self.y > player_y:
+            return math.degrees(math.tan((self.x - player_y)/(self.y-player_y)))
+        else:
+            return 0
+
+    def point(self, direction):
+        self.angle = direction
+        self.angle %= 360
+        self.display_image = pygame.transform.rotate(self.original_image, self.angle)

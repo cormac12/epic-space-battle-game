@@ -55,6 +55,7 @@ while run:
         if random.randint(1,1) == 1:
             i.rotate("clockwise")
             i.accelerate()
+            i.point(i.get_angle_to_player(p.x, p.y))
 
     for i in enemies:
         i.update_pos()
@@ -67,8 +68,11 @@ while run:
         if event.type == pygame.QUIT:  # If user clicked close
             run = False
 
-    display_x = my_font.render(str(camera_pos[0]), True, (255,255,255))
-    display_y = my_font.render(str(camera_pos[1]), True, (255,255,255))
+    # display_x = my_font.render(str(camera_pos[0]), True, (255,255,255))
+    # display_y = my_font.render(str(camera_pos[1]), True, (255,255,255))
+
+    display_x = my_font.render(str(p.x), True, (255,255,255))
+    display_y = my_font.render(str(p.y), True, (255,255,255))
 
     screen.fill((0, 0, 0))
     # ------Blit Zone Start------
