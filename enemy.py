@@ -32,8 +32,8 @@ class Enemy:
         self.display_image = pygame.transform.rotate(self.original_image, self.angle)
 
     def accelerate(self):
-        self.vy -= math.cos(math.radians(self.angle)) * 0.05
-        self.vx -= math.sin(math.radians(self.angle)) * 0.05
+        self.vy -= math.cos(math.radians(self.angle)) * 0.2
+        self.vx -= math.sin(math.radians(self.angle)) * 0.2
 
     def update_pos(self):
         self.x += self.vx
@@ -76,21 +76,25 @@ class Enemy:
         # rotates and accelerates craft in order to achieve target relative velocity vector to player
         target_vx = magnitude * math.sin(math.radians(direction))
         target_vy = magnitude * math.cos(math.radians(direction))
-        if self.vx > player_vx and self.vy > player_vy:
-            target_angle = math.degrees(math.atan((self.vx - player_vx)/(self.vy-player_vy)))
-        elif self.vx > player_vx and self.vy < player_vy:
-            target_angle = math.degrees((math.atan((self.vx - player_vx)/(self.vy-player_vy)))) + 180
-        elif self.vx < player_vx and self.vy < player_vy:
-            target_angle = math.degrees((math.atan((self.vx - player_vx)/(self.vy-player_vy)))) + 180
-        elif self.vx < player_vx and self.vy > player_vy:
-            target_angle = math.degrees(math.atan((self.vx - player_vx)/(self.vy-player_vy)))
-        else:
-            target_angle = 0
 
-        # self.target_direction(target_angle)
-        if (self.target_direction(target_angle) and
-                round(math.sqrt((self.vx-player_vx)**2 + (self.vy-player_vy)**2),0) < round(math.sqrt(target_vx**2 + target_vy**2),0)):
-            self.accelerate()
+        if self.vx - player_vx != target_vx and self.vy - player_vy != target_vy:
+
+            if self.vx > player_vx and self.vy > player_vy:
+                target_angle = math.degrees(math.atan((self.vx - player_vx)/(self.vy-player_vy)))
+            elif self.vx > player_vx and self.vy < player_vy:
+                target_angle = math.degrees((math.atan((self.vx - player_vx)/(self.vy-player_vy)))) + 180
+            elif self.vx < player_vx and self.vy < player_vy:
+                target_angle = math.degrees((math.atan((self.vx - player_vx)/(self.vy-player_vy)))) + 180
+            elif self.vx < player_vx and self.vy > player_vy:
+                target_angle = math.degrees(math.atan((self.vx - player_vx)/(self.vy-player_vy)))
+            else:
+                target_angle = 0
+
+            # self.target_direction(target_angle)
+            if (self.target_direction(target_angle) and
+                    round(math.sqrt((self.vx-player_vx)**2 + (self.vy-player_vy)**2),0) != round(math.sqrt(target_vx**2 + target_vy**2),0)):
+                self.accelerate()
+                print("Acc")
 
 
 
