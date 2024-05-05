@@ -32,8 +32,8 @@ class Player:
                                 self.display_image.get_height())
 
     def accelerate(self):
-        self.vy -= math.cos(math.radians(self.angle)) * .1
-        self.vx -= math.sin(math.radians(self.angle)) * .1
+        self.vy -= math.cos(math.radians(self.angle)) * .2
+        self.vx -= math.sin(math.radians(self.angle)) * .2
 
     def update_pos(self):
         self.x += self.vx
