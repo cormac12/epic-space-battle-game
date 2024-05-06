@@ -56,7 +56,7 @@ while run:
         fps /= 1.5
 
 
-    p.update_pos()
+    p.update_coords()
     # camera_pos = (p.x + p.rect.width/2 - 750, p.y + p.rect.height/2 - 500)
     camera_pos = (p.x - 750, p.y - 500)
 
@@ -65,16 +65,19 @@ while run:
             # i.rotate("clockwise")
             # i.accelerate()
             # i.target_direction(i.get_angle_to_player(p.x, p.y))
-            i.target_vector(90, 1, p.vx, p.vy)
+            i.target_vector(0, 1, p.vx, p.vy)
 
     for i in enemies:
-        i.update_pos()
+        i.update_coords()
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                print("Add in sprite change pls")
+                p.start_engine()
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_w:
+                p.stop_engine()
         if event.type == pygame.QUIT:  # If user clicked close
             run = False
 
