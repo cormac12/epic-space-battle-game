@@ -1,7 +1,6 @@
 import pygame
 import globals
 import math
-import os
 
 
 
@@ -11,14 +10,13 @@ class Enemy:
 
         self.my_font = pygame.font.SysFont('Arial', 15)
 
-        self.original_image = pygame.image.load("spaceship2.png")
-        self.display_image = pygame.transform.rotate(self.original_image, self.angle)
-        self.display_image = pygame.transform.rotate(self.original_image, self.angle)
+
+
 
         self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load("spaceship2.png")}
         self.image_index = "engine off"
+        self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
         self.engine_on = False
-
 
         self.x = x
         self.y = y
@@ -76,7 +74,7 @@ class Enemy:
     def point(self, direction):
         self.angle = direction
         self.angle %= 360
-        self.display_image = pygame.transform.rotate(self.original_image, self.angle)
+        self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
 
     def target_direction(self, target): # rotates the ship toward the player.
         # returns true when pointing at the target
@@ -101,21 +99,26 @@ class Enemy:
         deviation_y = target_vy - (player_vy - self.vy)
 
 
-        print(deviation_x)
-        print(deviation_y)
-        
-        if self.vx >= player_vx and self.vy >= player_vy:
-            deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
-        elif self.vx >= player_vx and self.vy <= player_vy:
-            deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
-        elif self.vx <= player_vx and self.vy <= player_vy:
-            deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
-        elif self.vx <= player_vx and self.vy >= player_vy:
-            deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
-        else:
-            deviation_angle = 1
+        # print(deviation_x)
+        # print(deviation_y)
 
-        print(deviation_angle)
+        if deviation_y != 0:
+            if target_vx >= player_vx and target_vy >= player_vy:
+                deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
+            elif target_vx >= player_vx and target_vy <= player_vy:
+                deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
+            elif target_vx <= player_vx and target_vy <= player_vy:
+                deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
+            elif target_vx <= player_vx and target_vy >= player_vy:
+                deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
+            else:
+                deviation_angle = 1
+        elif deviation_x < 0:
+            deviation_angle = 270
+        else:
+            deviation_angle = 90
+
+        # print(deviation_angle)
 
         deviation_magnitude = math.sqrt(deviation_x**2 + deviation_y**2)
 
@@ -123,8 +126,10 @@ class Enemy:
         if deviation_x != 0 or deviation_y != 0:
             on_target = self.target_direction(deviation_angle)
             if on_target and deviation_magnitude <= self.main_engine_str:
-                self.vx = player_vx + target_vx
-                self.vy = player_vy + target_vy
+                self.vx = (player_vx + target_vx)
+                self.vy = (player_vy + target_vy)
+                print("X", self.vx)
+                print("Y", self.vy)
             elif on_target:
                 self.start_engine()
             else:

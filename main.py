@@ -65,7 +65,7 @@ while run:
             # i.rotate("clockwise")
             # i.accelerate()
             # i.target_direction(i.get_angle_to_player(p.x, p.y))
-            i.target_vector(0, 1, p.vx, p.vy)
+            i.target_vector(45, 1, p.vx, p.vy)
 
     for i in enemies:
         i.update_coords()
@@ -81,8 +81,8 @@ while run:
         if event.type == pygame.QUIT:  # If user clicked close
             run = False
 
-    # display_x = my_font.render(str(camera_pos[0]), True, (255,255,255))
-    # display_y = my_font.render(str(camera_pos[1]), True, (255,255,255))
+    display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
+    display_y = my_font.render(str(enemies[0].vy), True, (255,255,255))
 
     # display_x = my_font.render(str(enemies[0].cw), True, (255,255,255))
     # display_y = my_font.render(str(enemies[0].ccw), True, (255,255,255))
@@ -96,12 +96,10 @@ while run:
         screen.blit(i.display_image, pygame.Rect(i.x - camera_pos[0] - i.display_image.get_width()/2,
                                                  i.y - camera_pos[1] - i.display_image.get_height()/2, i.display_image.get_width(),
                                                  i.display_image.get_height()))
-    # screen.blit(enemies[0].cw, (0, 0))
-    # screen.blit(enemies[0].ccw, (0, 15))
+    screen.blit(display_x, (0, 0))
+    screen.blit(display_y, (0, 15))
     screen.blit(display_fps, (0, size[1]-30))
     # screen.blit(i, (100-p.x, 100-p.y))
-
-    print("fix line 97 of enemy.py")
 
     # ------Blit Zone End------
 
