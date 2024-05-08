@@ -8,7 +8,8 @@ class Player:
 
 
 
-        self.images = {"engine off": pygame.image.load("spaceship off.png"), "engine on": pygame.image.load("spaceship.png")}
+        self.images = {"engine off": pygame.image.load("spaceship off.png"), "engine on": pygame.image.load(
+            "spaceship.png")}
         self.image_index = "engine off"
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
         self.rect = pygame.Rect(750 - self.display_image.get_width()/2,

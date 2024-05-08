@@ -11,7 +11,7 @@ my_font = pygame.font.SysFont('Arial', 15)
 pygame.display.set_caption("Space Fight!")
 
 # set up variables for the display
-size = (1500, 1000)
+size = (1500, 950)
 screen = pygame.display.set_mode(size)
 
 name = "Mr. Das"
@@ -29,7 +29,7 @@ camera_pos = (0,0)
 globals.globals_dict["player_x"] = p.x
 globals.globals_dict["player_y"] = p.y
 
-enemies = [ Enemy(100, 100, 0, 0)]
+enemies = [Enemy(100, 100, 0, 0)]
 
 fps = 30
 
@@ -65,7 +65,7 @@ while run:
             # i.rotate("clockwise")
             # i.accelerate()
             # i.target_direction(i.get_angle_to_player(p.x, p.y))
-            i.target_vector(45, 1, p.vx, p.vy)
+            i.target_vector(315, 1, p.vx, p.vy)
 
     for i in enemies:
         i.update_coords()
