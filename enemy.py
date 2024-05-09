@@ -24,7 +24,7 @@ class Enemy:
         self.vx = vx
         self.vy = vy
 
-        self.main_engine_str = 0.1
+        self.main_engine_str = 0.3
 
         self.rect = pygame.Rect(self.x - globals.globals_dict["player_x"], self.y - globals.globals_dict["player_y"],
                                 self.display_image.get_width(), self.display_image.get_height())
@@ -79,6 +79,7 @@ class Enemy:
 
     def target_direction(self, target): # rotates the ship toward the player.
         # returns true when pointing at the target
+        # this func still goes the wrong way around sometimes
         if -5 <= self.angle - target <= 5 or self.angle - target >= 360:
             self.point(target)
             self.cw = self.my_font.render(str((self.angle - target) % 360), True, (255, 255, 255))
@@ -134,8 +135,10 @@ class Enemy:
         if deviation_x != 0 or deviation_y != 0:
             on_target = self.target_direction(deviation_angle)
             if on_target and deviation_magnitude <= self.main_engine_str:
-                self.vx = (player_vx - target_vx)
-                self.vy = (player_vy - target_vy)
+                self.vx = (player_vx + target_vx)
+                self.vy = (player_vy + target_vy)
+
+                print("FIND A WAY TO ENABLE PLUME FOR THIS CONDITION")
                 # print("X", self.vx)
                 # print("Y", self.vy)
             elif on_target:

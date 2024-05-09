@@ -21,6 +21,7 @@ class Player:
         self.vx = 0
         self.vy = 0
         self.engine_on = False
+        self.main_engine_str = .1
 
     def rotate(self, direction):
         if direction == "clockwise":
@@ -37,8 +38,8 @@ class Player:
                                 self.display_image.get_height())
 
     def accelerate(self):
-        self.vy -= math.cos(math.radians(self.angle)) * .2
-        self.vx -= math.sin(math.radians(self.angle)) * .2
+        self.vy -= math.cos(math.radians(self.angle)) * self.main_engine_str
+        self.vx -= math.sin(math.radians(self.angle)) * self.main_engine_str
 
     def start_engine(self):
         self.engine_on = True

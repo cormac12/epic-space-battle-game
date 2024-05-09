@@ -32,13 +32,14 @@ globals.globals_dict["player_y"] = p.y
 enemies = [Enemy(100, 100, 0, 0)]
 
 fps = 30
-
+frame = 0
 clock = pygame.time.Clock()
 
 # -------- Main Program Loop -----------
 while run:
 
     clock.tick(fps)
+    frame += 1
 
     keys = pygame.key.get_pressed()
 
@@ -65,7 +66,7 @@ while run:
             # i.rotate("clockwise")
             # i.accelerate()
             # i.target_direction(i.get_angle_to_player(p.x, p.y))
-            i.target_vector(315, 1, p.vx, p.vy)
+                i.target_vector(i.get_angle_to_player(p.x, p.y), 1, p.vx, p.vy)
 
     for i in enemies:
         i.update_coords()
