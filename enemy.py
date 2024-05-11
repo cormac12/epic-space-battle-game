@@ -32,9 +32,11 @@ class Enemy:
     def rotate(self, direction):
         if direction == "clockwise":
             self.angle -= 5
+            print(1)
 
         elif direction == "counterclockwise":
             self.angle += 5
+            print(-1)
 
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
@@ -77,49 +79,118 @@ class Enemy:
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
 
+    # t
+    # 357.0
+    # a
+    # 1.0
+    # 1
+    # f
+    # t
+    # 357.0
+    # a
+    # 356.0
+    # -1
+    # f
+    # t
+    # 357.0
+    # a
+    # 1.0
+    # 1
+    # f
+    # t
+    # 357.0
+    # a
+    # 356.0
+    # -1
+    # f
+    # t
+    # 357.0
+    # a
+    # 1.0
+    # 1
+    # f
+    # t
+    # 357.0
+    # a
+    # 356.0
+    # -1
+    # f
+    # t
+    # 357.0
+    # a
+    # 1.0
+    # 1
+    # f
+    # t
+    # 357.0
+    # a
+    # 356.0
+    # -1
+    # f
     def target_direction(self, target): # rotates the ship toward the player.
         # returns true when pointing at the target
         # this func still goes the wrong way around sometimes
-        if -5 <= self.angle - target <= 5 or self.angle - target >= 360:
-            self.point(target)
-            self.cw = self.my_font.render(str((self.angle - target) % 360), True, (255, 255, 255))
-            self.ccw = self.my_font.render(str((self.angle + target) % 360), True, (255, 255, 255))
-            return True
-        elif (self.angle - target) % 360 <= (self.angle + target) % 360:
-            self.rotate("clockwise")
-        elif (self.angle - target) % 360 >= (self.angle + target) % 360:
-            self.rotate("counterclockwise")
+        target %= 360
+        target = round(target, 0)
+        print("t", target)
+        print("a", self.angle)
+        if self.angle < 180:
+            if self.angle <= (target + 5) % 360 and (self.angle + 5) % 360 >= target:
+                self.point(target)
+                print("t")
+                return True
+            elif self.angle < target <= self.angle + 180:
+                self.rotate("counterclockwise")
+            elif self.angle > target or self.angle + 180 < target:
+                self.rotate("clockwise")
+        elif self.angle > 180:
 
+            if ((self.angle <= (target + 5) % 360 or self.angle <= target + 5)
+                    and (target <= (self.angle + 5) % 360 or target <= self.angle + 5)):
+                self.point(target)
+                print("t")
+                return True
+            elif self.angle - 180 <= target < self.angle:
+                self.rotate("clockwise")
+            elif target > self.angle or target < self.angle - 180:
+                self.rotate("counterclockwise")
+        elif self.angle == 180:
+            if 175 <= target <= 185:
+                self.point(target)
+                return True
+            elif target < self.angle:
+                self.rotate("clockwise")
+            else:
+                self.rotate("counterclockwise")
+
+        print("f")
         return False
+
+
+
+
+
 
     def target_vector(self, direction, magnitude, player_vx, player_vy):
         # rotates and accelerates craft in order to achieve target relative velocity vector to player
         target_vx = magnitude * math.sin(math.radians(direction))*-1
         target_vy = magnitude * math.cos(math.radians(direction))*-1
 
-        print("tvx", target_vx)
-        print("tvy", target_vy)
 
         deviation_x = target_vx + (player_vx - self.vx)
         deviation_y = target_vy + (player_vy - self.vy)
 
 
-        print("x",deviation_x)
-        print("y",deviation_y)
 
         if deviation_y != 0:
             if deviation_x <= 0 and deviation_y <= 0:
                 deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
-                print("AAA")
             elif deviation_x <= 0 and deviation_y >= 0:
                 deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
-                print("BBB")
             elif deviation_x >= 0 and deviation_y >= 0:
                 deviation_angle = math.degrees((math.atan(deviation_x/deviation_y))) + 180
-                print("CCC")
             elif deviation_x >= 0 and deviation_y <= 0:
                 deviation_angle = math.degrees(math.atan(deviation_x/deviation_y)) + 360
-                print("DDD")
             else:
                 deviation_angle = 1
         elif deviation_x < 0:
@@ -127,7 +198,6 @@ class Enemy:
         else:
             deviation_angle = 90
 
-        print("angle",deviation_angle)
 
         deviation_magnitude = math.sqrt(deviation_x**2 + deviation_y**2)
 
@@ -138,7 +208,6 @@ class Enemy:
                 self.vx = (player_vx + target_vx)
                 self.vy = (player_vy + target_vy)
 
-                print("FIND A WAY TO ENABLE PLUME FOR THIS CONDITION")
                 # print("X", self.vx)
                 # print("Y", self.vy)
             elif on_target:

@@ -66,7 +66,7 @@ while run:
             # i.rotate("clockwise")
             # i.accelerate()
             # i.target_direction(i.get_angle_to_player(p.x, p.y))
-                i.target_vector(i.get_angle_to_player(p.x, p.y), 1, p.vx, p.vy)
+                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 1, p.vx, p.vy)
 
     for i in enemies:
         i.update_coords()
