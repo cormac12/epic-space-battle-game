@@ -187,8 +187,8 @@ class Enemy:
                 self.vx = (player_vx + target_vx)
                 self.vy = (player_vy + target_vy)
 
-                print("X", self.vx)
-                print("Y", self.vy)
+                # print("X", self.vx)
+                # print("Y", self.vy)
             elif on_target:
                 self.start_engine()
             else:

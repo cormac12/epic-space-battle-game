@@ -121,10 +121,28 @@ while run:
                                              laser_image_transformed.get_width(),
                                              laser_image_transformed.get_height())
             last_p_angle = p.angle
+        elif p.current_weapon == 1:
+            if frame % p.fire_rate == 0:
+                p.fire_point_defense(90)
 
     else:
         laser_on = False
 
+    # --- Main event loop
+    for event in pygame.event.get():  # User did something
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_w:
+                p.start_engine()
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_w:
+                p.stop_engine()
+        elif event.type == pygame.MOUSEWHEEL:
+            if event.y > 0 and p.current_weapon < len(p.weapon_names)-1:
+                p.current_weapon += 1
+            elif event.y < 0 and p.current_weapon > 0:
+                p.current_weapon -= 1
+        elif event.type == pygame.QUIT:  # If user clicked close
+            run = False
     p.update_coords()
 
     for i in enemies:
@@ -139,22 +157,16 @@ while run:
         else:
             enemies.remove(i)
 
+    for i in p.live_rounds:
+        i.update_coords()
+
     if len(enemies) == 0:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
 
 
-    # --- Main event loop
-    for event in pygame.event.get():  # User did something
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                p.start_engine()
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_w:
-                p.stop_engine()
-        if event.type == pygame.QUIT:  # If user clicked close
-            run = False
+
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
     display_y = my_font.render(str(enemies[0].vy), True, (255,255,255))
@@ -173,7 +185,8 @@ while run:
             if i.alive and i.mask.overlap(laser_mask, (laser_rect.left-i.rect.left,laser_rect.top -i.rect.top)):
                 i.health -= 10
 
-
+    for i in p.live_rounds:
+        pygame.draw.rect(screen, (255,255,255), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 2,2))
 
     screen.blit(p.display_image, p.rect)
 
