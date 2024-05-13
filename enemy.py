@@ -8,49 +8,64 @@ class Enemy:
     def __init__(self, x, y, vx, vy):
         self.angle = 0
 
-        self.my_font = pygame.font.SysFont('Arial', 15)
-
-
-
-
         self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
             "spaceship2.png")}
         self.image_index = "engine off"
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.mask = pygame.mask.from_surface(self.display_image)
+
         self.engine_on = False
+
+        self.health = 100
 
         self.x = x
         self.y = y
         self.vx = vx
         self.vy = vy
+        self.alive = True
 
         self.main_engine_str = 0.3
 
-        self.rect = pygame.Rect(self.x - globals.globals_dict["player_x"], self.y - globals.globals_dict["player_y"],
-                                self.display_image.get_width(), self.display_image.get_height())
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
+                    self.display_image.get_width(),
+                    self.display_image.get_height())
 
     def rotate(self, direction):
         if direction == "clockwise":
             self.angle -= 5
-            print(1)
+
 
         elif direction == "counterclockwise":
             self.angle += 5
-            print(-1)
+
 
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+        self.mask = pygame.mask.from_surface(self.display_image)
 
 
     def start_engine(self):
         self.engine_on = True
         self.image_index = "engine on"
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+        self.mask = pygame.mask.from_surface(self.display_image)
+
 
     def stop_engine(self):
         self.engine_on = False
         self.image_index = "engine off"
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+        self.mask = pygame.mask.from_surface(self.display_image)
 
     def accelerate(self):
         self.vy -= math.cos(math.radians(self.angle)) * self.main_engine_str
@@ -61,6 +76,11 @@ class Enemy:
             self.accelerate()
         self.x += self.vx
         self.y += self.vy
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+        if self.health <= 0:
+            self.alive = False
 
     def get_angle_to_player(self, player_x, player_y):
         if self.x > player_x and self.y > player_y:
@@ -74,70 +94,29 @@ class Enemy:
         else:
             return 0
 
+
+    def get_distance_to_player(self):
+        return math.sqrt((globals.globals_dict["player_x"] - self.x)**2 + (globals.globals_dict["player_y"] - self.y)**2)
+
     def point(self, direction):
         self.angle = direction
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.mask = pygame.mask.from_surface(self.display_image)
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
 
-    # t
-    # 357.0
-    # a
-    # 1.0
-    # 1
-    # f
-    # t
-    # 357.0
-    # a
-    # 356.0
-    # -1
-    # f
-    # t
-    # 357.0
-    # a
-    # 1.0
-    # 1
-    # f
-    # t
-    # 357.0
-    # a
-    # 356.0
-    # -1
-    # f
-    # t
-    # 357.0
-    # a
-    # 1.0
-    # 1
-    # f
-    # t
-    # 357.0
-    # a
-    # 356.0
-    # -1
-    # f
-    # t
-    # 357.0
-    # a
-    # 1.0
-    # 1
-    # f
-    # t
-    # 357.0
-    # a
-    # 356.0
-    # -1
-    # f
     def target_direction(self, target): # rotates the ship toward the player.
         # returns true when pointing at the target
         # this func still goes the wrong way around sometimes
         target %= 360
         target = round(target, 0)
-        print("t", target)
-        print("a", self.angle)
+
         if self.angle < 180:
             if self.angle <= (target + 5) % 360 and (self.angle + 5) % 360 >= target:
                 self.point(target)
-                print("t")
+
                 return True
             elif self.angle < target <= self.angle + 180:
                 self.rotate("counterclockwise")
@@ -148,7 +127,7 @@ class Enemy:
             if ((self.angle <= (target + 5) % 360 or self.angle <= target + 5)
                     and (target <= (self.angle + 5) % 360 or target <= self.angle + 5)):
                 self.point(target)
-                print("t")
+
                 return True
             elif self.angle - 180 <= target < self.angle:
                 self.rotate("clockwise")
@@ -163,7 +142,7 @@ class Enemy:
             else:
                 self.rotate("counterclockwise")
 
-        print("f")
+
         return False
 
 
@@ -208,8 +187,8 @@ class Enemy:
                 self.vx = (player_vx + target_vx)
                 self.vy = (player_vy + target_vy)
 
-                # print("X", self.vx)
-                # print("Y", self.vy)
+                print("X", self.vx)
+                print("Y", self.vy)
             elif on_target:
                 self.start_engine()
             else:

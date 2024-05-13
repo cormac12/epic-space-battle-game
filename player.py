@@ -23,12 +23,14 @@ class Player:
         self.engine_on = False
         self.main_engine_str = .1
 
-    def rotate(self, direction):
+        self.current_weapon = 0
+
+    def rotate(self, direction, magnitude):
         if direction == "clockwise":
-            self.angle -= 3
+            self.angle -= magnitude
 
         elif direction == "counterclockwise":
-            self.angle += 3
+            self.angle += magnitude
 
         self.angle %= 360
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
@@ -57,4 +59,5 @@ class Player:
             self.accelerate()
         self.x += self.vx
         self.y += self.vy
+
 
