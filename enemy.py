@@ -16,7 +16,7 @@ class Enemy:
 
         self.engine_on = False
 
-        self.health = 100
+        self.health = 30
 
         self.x = x
         self.y = y
@@ -24,7 +24,7 @@ class Enemy:
         self.vy = vy
         self.alive = True
 
-        self.main_engine_str = 0.3
+        self.main_engine_str = 0.12
 
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
                     self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
@@ -83,16 +83,15 @@ class Enemy:
             self.alive = False
 
     def get_angle_to_player(self, player_x, player_y):
-        if self.x > player_x and self.y > player_y:
+        if self.x >= player_x and self.y >= player_y:
             return math.degrees(math.atan((self.x - player_x)/(self.y-player_y)))
-        elif self.x > player_x and self.y < player_y:
+        elif self.x >= player_x and self.y <= player_y:
             return math.degrees((math.atan((self.x - player_x)/(self.y-player_y)))) + 180
-        elif self.x < player_x and self.y < player_y:
+        elif self.x <= player_x and self.y <= player_y:
             return math.degrees((math.atan((self.x - player_x)/(self.y-player_y)))) + 180
-        elif self.x < player_x and self.y > player_y:
+        elif self.x <= player_x and self.y >= player_y:
             return math.degrees(math.atan((self.x - player_x)/(self.y-player_y)))
-        else:
-            return 0
+
 
 
     def get_distance_to_player(self):

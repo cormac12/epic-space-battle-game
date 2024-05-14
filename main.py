@@ -6,6 +6,23 @@ import random
 import time
 import math
 
+
+def get_angle_to_point(x1,y1, x2, y2):
+    if y1 - y2 != 0:
+        if x1 >= x2 and y1 >= y2:
+            return math.degrees(math.atan((x1 - x2) / (y1 - y2)))
+        elif x1 >= x2 and y1 <= y2:
+            return math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180
+        elif x1 <= x2 and y1 <= y2:
+            return math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180
+        elif x1 <= x2 and y1 >= y2:
+            return math.degrees(math.atan((x1 - x2) / (y1 - y2)))
+    elif x1 - x2 < 0:
+        return 270
+    else:
+        return 90
+
+
 # set up pygame modules
 pygame.init()
 pygame.font.init()
@@ -16,6 +33,8 @@ pygame.display.set_caption("Space Fight!")
 size = (1500, 1000)
 screen = pygame.display.set_mode(size)
 
+
+# I'm just keeping this as a placeholder for when I need to add text
 name = "Mr. Das"
 
 # render the text for later
@@ -49,6 +68,8 @@ last_p_angle = ""
 while run:
     clock.tick(target_fps)
 
+    frame += 1
+
     time_1 = time_2
     time_2 = time.time()
 
@@ -62,27 +83,46 @@ while run:
 
 
 
-    camera_pos = (p.x - 750, p.y - 500)
+
+    mouse_pos = pygame.mouse.get_pos()
 
     # ------ Update Globals -------
     globals.globals_dict["player_x"] = p.x
     globals.globals_dict["player_y"] = p.y
     globals.globals_dict["camera_pos"] = camera_pos
+    globals.globals_dict["mouse_pos"] = mouse_pos
 
     # ------ End of Update Globals --------
 
+    # ------ Update World Objects ---------
+    p.update_coords()
+    camera_pos = (p.x - 750, p.y - 500)
+
+    for i in enemies:
+        if i.alive:
+            if i.get_distance_to_player() > 300:
+                i.target_vector(i.get_angle_to_player(p.x, p.y), 2, p.vx, p.vy)
+            elif i.get_distance_to_player() < 150:
+                i.target_vector(i.get_angle_to_player(p.x, p.y) + 180, 1, p.vx, p.vy)
+            else:
+                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 5.5, p.vx, p.vy)
+            i.update_coords()
+        else:
+            enemies.remove(i)
+
+    for i in p.live_rounds:
+        i.update_coords()
 
 
-    frame += 1
 
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_d]:
-        p.rotate("clockwise",3)
+        p.rotate("clockwise",1.5)
     elif keys[pygame.K_e]:
         p.rotate("clockwise", .5)
     if keys[pygame.K_a]:
-        p.rotate("counterclockwise", 3)
+        p.rotate("counterclockwise", 1.5)
     elif keys[pygame.K_q]:
         p.rotate("counterclockwise", .5)
     if keys[pygame.K_w]:
@@ -123,10 +163,17 @@ while run:
             last_p_angle = p.angle
         elif p.current_weapon == 1:
             if frame % p.fire_rate == 0:
-                p.fire_point_defense(90)
+                p.fire_point_defense(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
+                                     + random.randint(-10,10)/10)
+
 
     else:
         laser_on = False
+
+    # If there are more than a thousand projectiles in the world, the oldest will be deleted
+    # 
+    while len(p.live_rounds) > 1000:
+        p.live_rounds.pop(0)
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
@@ -143,29 +190,19 @@ while run:
                 p.current_weapon -= 1
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
-    p.update_coords()
 
-    for i in enemies:
-        if i.alive:
-            if i.get_distance_to_player() > 300:
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 45, 2, p.vx, p.vy)
-            elif i.get_distance_to_player() < 150:
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 180, 2, p.vx, p.vy)
-            else:
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 2, p.vx, p.vy)
-            i.update_coords()
-        else:
-            enemies.remove(i)
 
-    for i in p.live_rounds:
-        i.update_coords()
 
     if len(enemies) == 0:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
 
-
+    for i in enemies:
+        for b in p.live_rounds:
+            if i.alive and i.mask.overlap(pygame.Mask((2,2),True), (b.x - camera_pos[0] - i.rect.left, b.y - camera_pos[1] - i.rect.top)):
+                i.health -= 2
+                p.live_rounds.remove(b)
 
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
@@ -183,10 +220,10 @@ while run:
                                                          500 + -1000 *math.cos(math.radians(p.angle))), width=5)
         for i in enemies:
             if i.alive and i.mask.overlap(laser_mask, (laser_rect.left-i.rect.left,laser_rect.top -i.rect.top)):
-                i.health -= 10
+                i.health -= 1
 
     for i in p.live_rounds:
-        pygame.draw.rect(screen, (255,255,255), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 2,2))
+        pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 2,2))
 
     screen.blit(p.display_image, p.rect)
 
