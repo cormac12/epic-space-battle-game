@@ -55,7 +55,7 @@ enemies = [Enemy(100, 100, 2, 2)]
 
 laser_image = pygame.image.load("laser.png")
 
-target_fps = 45
+target_fps = 30
 frame = 0
 clock = pygame.time.Clock()
 time_1 = 0
@@ -85,7 +85,8 @@ while run:
 
 
     mouse_pos = pygame.mouse.get_pos()
-
+    p.update()
+    camera_pos = (p.x - 750, p.y - 500)
     # ------ Update Globals -------
     globals.globals_dict["player_x"] = p.x
     globals.globals_dict["player_y"] = p.y
@@ -95,36 +96,42 @@ while run:
     # ------ End of Update Globals --------
 
     # ------ Update World Objects ---------
-    p.update_coords()
-    camera_pos = (p.x - 750, p.y - 500)
+
 
     for i in enemies:
+        print(i.get_distance_to_player())
         if i.alive:
+            i.update()
             if i.get_distance_to_player() > 300:
-                i.target_vector(i.get_angle_to_player(p.x, p.y), 2, p.vx, p.vy)
+                print("FAR")
+                i.target_vector(i.get_angle_to_player(p.x, p.y), 1, p.vx, p.vy)
             elif i.get_distance_to_player() < 150:
+                print("CLOSE")
                 i.target_vector(i.get_angle_to_player(p.x, p.y) + 180, 1, p.vx, p.vy)
             else:
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 5.5, p.vx, p.vy)
-            i.update_coords()
+                print("GOOD")
+                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 4, p.vx, p.vy)
+            print(i.get_distance_to_player())
+
         else:
             enemies.remove(i)
 
+
     for i in p.live_rounds:
-        i.update_coords()
+        i.update()
 
 
 
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_d]:
-        p.rotate("clockwise",1.5)
+        p.rotate("clockwise",2.25)
     elif keys[pygame.K_e]:
-        p.rotate("clockwise", .5)
+        p.rotate("clockwise", .75)
     if keys[pygame.K_a]:
-        p.rotate("counterclockwise", 1.5)
+        p.rotate("counterclockwise", 2.25)
     elif keys[pygame.K_q]:
-        p.rotate("counterclockwise", .5)
+        p.rotate("counterclockwise", .75)
     if keys[pygame.K_w]:
         p.accelerate()
     if keys[pygame.K_SPACE]:
@@ -170,10 +177,10 @@ while run:
     else:
         laser_on = False
 
-    # If there are more than a thousand projectiles in the world, the oldest will be deleted
-    # 
-    while len(p.live_rounds) > 1000:
-        p.live_rounds.pop(0)
+    if pygame.mouse.get_pressed()[2]:
+        p.fire_point_defense(get_angle_to_point(750, 500, mouse_pos[0], mouse_pos[1])
+                             + random.randint(-10, 10) / 10)
+
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
@@ -191,16 +198,25 @@ while run:
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
 
+    # If there are more than a thousand projectiles in the world, the oldest will be deleted
+    while len(p.live_rounds) > 1000:
+        p.live_rounds.pop(0)
 
-
-    if len(enemies) == 0:
+    if len(enemies) < 3:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
+    # for b in p.live_rounds:
+    #     current_mask = pygame.Mask((1,1),True)
+    #     for i in enemies:
+    #         if i.alive and i.mask.overlap(current_mask, (b.x - camera_pos[0] - i.rect.left, b.y - camera_pos[1] - i.rect.top)):
+    #             i.health -= 2
+    #             p.live_rounds.remove(b)
+
 
     for i in enemies:
         for b in p.live_rounds:
-            if i.alive and i.mask.overlap(pygame.Mask((2,2),True), (b.x - camera_pos[0] - i.rect.left, b.y - camera_pos[1] - i.rect.top)):
+            if i.alive and i.rect.colliderect(b.rect):
                 i.health -= 2
                 p.live_rounds.remove(b)
 
@@ -223,7 +239,7 @@ while run:
                 i.health -= 1
 
     for i in p.live_rounds:
-        pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 2,2))
+        pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 1,1))
 
     screen.blit(p.display_image, p.rect)
 

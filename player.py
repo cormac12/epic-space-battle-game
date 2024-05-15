@@ -23,7 +23,7 @@ class Player:
         self.vy = 0
 
         self.engine_on = False
-        self.main_engine_str = .04
+        self.main_engine_str = .06
 
         self.current_weapon = 0
         self.weapon_names = ["Laser", "Point Defense"]
@@ -60,9 +60,9 @@ class Player:
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
 
     def fire_point_defense(self, angle):
-        self.live_rounds.append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
-                                       self.vy- 5 * math.cos(math.radians(angle))))
-    def update_coords(self):
+        self.live_rounds.append(Bullet(self.x, self.y, self.vx - 8 * math.sin(math.radians(angle)),
+                                       self.vy- 8 * math.cos(math.radians(angle)),0))
+    def update(self):
         if self.engine_on:
             self.accelerate()
         self.x += self.vx
