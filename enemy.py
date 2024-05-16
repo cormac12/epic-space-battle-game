@@ -8,8 +8,8 @@ class Enemy:
     def __init__(self, x, y, vx, vy):
         self.angle = 0
 
-        self.images = {"engine off": pygame.image.load("spaceship2 off new.png"), "engine on": pygame.image.load(
-            "spaceship2 new.png")}
+        self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
+            "spaceship2.png")}
         self.image_index = "engine off"
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
         self.mask = pygame.mask.from_surface(self.display_image)
@@ -82,15 +82,15 @@ class Enemy:
         if self.health <= 0:
             self.alive = False
 
-    def get_angle_to_player(self, player_x, player_y):
-        if self.x >= player_x and self.y >= player_y:
-            return math.degrees(math.atan((self.x - player_x)/(self.y-player_y)))
-        elif self.x >= player_x and self.y <= player_y:
-            return math.degrees((math.atan((self.x - player_x)/(self.y-player_y)))) + 180
-        elif self.x <= player_x and self.y <= player_y:
-            return math.degrees((math.atan((self.x - player_x)/(self.y-player_y)))) + 180
-        elif self.x <= player_x and self.y >= player_y:
-            return math.degrees(math.atan((self.x - player_x)/(self.y-player_y)))
+    def get_angle_to_player(self):
+        if self.x >= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
+            return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
+        elif self.x >= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
+            return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
+        elif self.x <= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
+            return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
+        elif self.x <= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
+            return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
 
 
 

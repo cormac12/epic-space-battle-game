@@ -5,6 +5,7 @@ from enemy import Enemy
 import random
 import time
 import math
+from torpedo import Torpedo
 
 
 def get_angle_to_point(x1,y1, x2, y2):
@@ -52,6 +53,7 @@ globals.globals_dict["player_y"] = p.y
 globals.globals_dict["camera_pos"] = camera_pos
 
 enemies = [Enemy(100, 100, 2, 2)]
+torpedoes = []
 
 laser_image = pygame.image.load("laser.png")
 
@@ -104,13 +106,14 @@ while run:
             i.update()
             if i.get_distance_to_player() > 300:
                 print("FAR")
-                i.target_vector(i.get_angle_to_player(p.x, p.y), 1, p.vx, p.vy)
+                i.target_vector(i.get_angle_to_player(), 2, p.vx, p.vy)
             elif i.get_distance_to_player() < 150:
                 print("CLOSE")
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 180, 1, p.vx, p.vy)
+                i.target_vector(i.get_angle_to_player() + 180, 2, p.vx, p.vy)
+                torpedoes.append(Torpedo(i.x,i.y,i.vx,i.vy, i.get_angle_to_player(), False, -1))
             else:
                 print("GOOD")
-                i.target_vector(i.get_angle_to_player(p.x, p.y) + 90, 4, p.vx, p.vy)
+                i.target_vector(i.get_angle_to_player() + 90, 6, p.vx, p.vy)
             print(i.get_distance_to_player())
 
         else:
@@ -177,9 +180,6 @@ while run:
     else:
         laser_on = False
 
-    if pygame.mouse.get_pressed()[2]:
-        p.fire_point_defense(get_angle_to_point(750, 500, mouse_pos[0], mouse_pos[1])
-                             + random.randint(-10, 10) / 10)
 
 
     # --- Main event loop
@@ -248,6 +248,9 @@ while run:
     for i in enemies:
         if i.alive:
             screen.blit(i.display_image, i.rect)
+
+    for t in torpedoes:
+        screen.blit(t.original_image, t.rect)
 
     screen.blit(display_x, (0, 0))
     screen.blit(display_y, (0, 15))
