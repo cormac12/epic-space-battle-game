@@ -1,6 +1,7 @@
 import math
 import pygame
 from bullet import Bullet
+import globals
 
 
 class Player:
@@ -60,8 +61,8 @@ class Player:
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
 
     def fire_point_defense(self, angle):
-        self.live_rounds.append(Bullet(self.x, self.y, self.vx - 8 * math.sin(math.radians(angle)),
-                                       self.vy- 8 * math.cos(math.radians(angle)),0))
+        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 8 * math.sin(math.radians(angle)),
+                                               self.vy - 8 * math.cos(math.radians(angle)), 0))
     def update(self):
         if self.engine_on:
             self.accelerate()

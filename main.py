@@ -51,6 +51,8 @@ camera_pos = (0,0)
 globals.globals_dict["player_x"] = p.x
 globals.globals_dict["player_y"] = p.y
 globals.globals_dict["camera_pos"] = camera_pos
+globals.globals_dict["frame"] = 0
+globals.globals_dict["bullets"] = []
 
 enemies = [Enemy(100, 100, 2, 2)]
 torpedoes = []
@@ -83,7 +85,7 @@ while run:
     if len(fps_list) > 100:
         fps_list.pop(0)
 
-
+    print(len(torpedoes))
 
 
     mouse_pos = pygame.mouse.get_pos()
@@ -94,14 +96,28 @@ while run:
     globals.globals_dict["player_y"] = p.y
     globals.globals_dict["camera_pos"] = camera_pos
     globals.globals_dict["mouse_pos"] = mouse_pos
+    globals.globals_dict["frame"] = frame
 
     # ------ End of Update Globals --------
 
     # ------ Update World Objects ---------
 
 
+    for t in torpedoes:
+        t.update()
+        if not t.alive:
+            torpedoes.remove(t)
+        # for e in enemies:
+        #     if t.rect.colliderect(e.rect):
+        #         t.explode()
+        # if t.rect.colliderect(p.rect):
+        #     t.explode()
+
+
+
+
+
     for i in enemies:
-        print(i.get_distance_to_player())
         if i.alive:
             i.update()
             if i.get_distance_to_player() > 300:
@@ -110,18 +126,20 @@ while run:
             elif i.get_distance_to_player() < 150:
                 print("CLOSE")
                 i.target_vector(i.get_angle_to_player() + 180, 2, p.vx, p.vy)
-                torpedoes.append(Torpedo(i.x,i.y,i.vx,i.vy, i.get_angle_to_player(), False, -1))
             else:
                 print("GOOD")
-                i.target_vector(i.get_angle_to_player() + 90, 6, p.vx, p.vy)
-            print(i.get_distance_to_player())
+                i.target_vector(i.get_angle_to_player() + 60, 6, p.vx, p.vy)
+            if frame > i.cool_down_start + i.cool_down_duration:
+                torpedoes.append(Torpedo(i.x, i.y, i.vx, i.vy, i.get_angle_to_player(), False, -1, 1))
+                i.cool_down_start = frame
 
         else:
             enemies.remove(i)
 
 
-    for i in p.live_rounds:
+    for i in globals.globals_dict["bullets"]:
         i.update()
+
 
 
 
@@ -139,6 +157,8 @@ while run:
         p.accelerate()
     if keys[pygame.K_SPACE]:
         fps = 1
+        for i in torpedoes:
+            i.explode()
     if keys[pygame.K_UP]:
         target_fps *= 1.1
     if keys[pygame.K_DOWN]:
@@ -199,26 +219,21 @@ while run:
             run = False
 
     # If there are more than a thousand projectiles in the world, the oldest will be deleted
-    while len(p.live_rounds) > 1000:
-        p.live_rounds.pop(0)
+    while len(globals.globals_dict["bullets"]) > 1000:
+        globals.globals_dict["bullets"].pop(0)
 
     if len(enemies) < 3:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
-    # for b in p.live_rounds:
-    #     current_mask = pygame.Mask((1,1),True)
-    #     for i in enemies:
-    #         if i.alive and i.mask.overlap(current_mask, (b.x - camera_pos[0] - i.rect.left, b.y - camera_pos[1] - i.rect.top)):
-    #             i.health -= 2
-    #             p.live_rounds.remove(b)
+
 
 
     for i in enemies:
-        for b in p.live_rounds:
+        for b in globals.globals_dict["bullets"]:
             if i.alive and i.rect.colliderect(b.rect):
                 i.health -= 2
-                p.live_rounds.remove(b)
+                globals.globals_dict["bullets"].remove(b)
 
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
@@ -238,7 +253,7 @@ while run:
             if i.alive and i.mask.overlap(laser_mask, (laser_rect.left-i.rect.left,laser_rect.top -i.rect.top)):
                 i.health -= 1
 
-    for i in p.live_rounds:
+    for i in globals.globals_dict["bullets"]:
         pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 1,1))
 
     screen.blit(p.display_image, p.rect)
@@ -250,7 +265,7 @@ while run:
             screen.blit(i.display_image, i.rect)
 
     for t in torpedoes:
-        screen.blit(t.original_image, t.rect)
+        screen.blit(t.display_image, t.rect)
 
     screen.blit(display_x, (0, 0))
     screen.blit(display_y, (0, 15))

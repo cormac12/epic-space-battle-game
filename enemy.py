@@ -26,6 +26,9 @@ class Enemy:
 
         self.main_engine_str = 0.18
 
+        self.cool_down_start = 0  # Records the frame when the last torpedo was fired
+        self.cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
+
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
                     self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
                     self.display_image.get_width(),
@@ -57,6 +60,9 @@ class Enemy:
                     self.display_image.get_height())
         self.mask = pygame.mask.from_surface(self.display_image)
 
+    def launch_torpedo(self, angle):
+        self.torpedo.explode()
+
 
     def stop_engine(self):
         self.engine_on = False
@@ -83,14 +89,19 @@ class Enemy:
             self.alive = False
 
     def get_angle_to_player(self):
-        if self.x >= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
-            return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
-        elif self.x >= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
-            return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
-        elif self.x <= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
-            return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
-        elif self.x <= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
-            return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
+        if self.y-globals.globals_dict["player_y"] != 0:
+            if self.x >= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
+                return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
+            elif self.x >= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
+                return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
+            elif self.x <= globals.globals_dict["player_x"] and self.y <= globals.globals_dict["player_y"]:
+                return math.degrees((math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))) + 180
+            elif self.x <= globals.globals_dict["player_x"] and self.y >= globals.globals_dict["player_y"]:
+                return math.degrees(math.atan((self.x - globals.globals_dict["player_x"])/(self.y-globals.globals_dict["player_y"])))
+        elif self.x <= globals.globals_dict["player_x"]:
+            return 270
+        else:
+            return 90
 
 
 
