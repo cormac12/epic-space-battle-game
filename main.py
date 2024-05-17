@@ -117,24 +117,24 @@ while run:
 
 
 
-    for i in enemies:
-        if i.alive:
-            i.update()
-            if i.get_distance_to_player() > 300:
+    for i in range(len(enemies)):
+        if enemies[i].alive:
+            enemies[i].update()
+            if enemies[i].get_distance_to_player() > 300:
                 print("FAR")
-                i.target_vector(i.get_angle_to_player(), 2, p.vx, p.vy)
-            elif i.get_distance_to_player() < 150:
+                enemies[i].target_vector(enemies[i].get_angle_to_player(), 2, p.vx, p.vy)
+            elif enemies[i].get_distance_to_player() < 150:
                 print("CLOSE")
-                i.target_vector(i.get_angle_to_player() + 180, 2, p.vx, p.vy)
+                enemies[i].target_vector(enemies[i].get_angle_to_player() + 180, 2, p.vx, p.vy)
             else:
                 print("GOOD")
-                i.target_vector(i.get_angle_to_player() + 60, 6, p.vx, p.vy)
-            if frame > i.cool_down_start + i.cool_down_duration:
-                torpedoes.append(Torpedo(i.x, i.y, i.vx, i.vy, i.get_angle_to_player(), False, -1, 1))
-                i.cool_down_start = frame
+                enemies[i].target_vector(enemies[i].get_angle_to_player() + 60, 6, p.vx, p.vy)
+            if frame > enemies[i].cool_down_start + enemies[i].cool_down_duration:
+                torpedoes.append(Torpedo(enemies[i].x, enemies[i].y, enemies[i].vx, enemies[i].vy, enemies[i].get_angle_to_player(), False, -1, i))
+                enemies[i].cool_down_start = frame
 
         else:
-            enemies.remove(i)
+            enemies.pop(i)
 
 
     for i in globals.globals_dict["bullets"]:
@@ -229,11 +229,19 @@ while run:
 
 
 
-    for i in enemies:
+    for i in range(len(enemies)):
         for b in globals.globals_dict["bullets"]:
-            if i.alive and i.rect.colliderect(b.rect):
-                i.health -= 2
+            if enemies[i].alive and enemies[i].rect.colliderect(b.rect):
+                enemies[i].health -= 2
                 globals.globals_dict["bullets"].remove(b)
+
+
+        for t in torpedoes:
+            if not t.exploding:
+                if t.parent != i:
+                    if t.rect.colliderect(enemies[i].rect):
+                        t.explode()
+
 
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))

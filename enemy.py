@@ -60,8 +60,6 @@ class Enemy:
                     self.display_image.get_height())
         self.mask = pygame.mask.from_surface(self.display_image)
 
-    def launch_torpedo(self, angle):
-        self.torpedo.explode()
 
 
     def stop_engine(self):
