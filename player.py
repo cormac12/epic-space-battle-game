@@ -25,7 +25,8 @@ class Player:
         self.vx = 0
         self.vy = 0
 
-        self.health = 10
+        self.health = 1000
+        self.energy = 1000
 
         self.engine_on = False
         self.main_engine_str = .06
@@ -65,13 +66,18 @@ class Player:
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
 
     def fire_point_defense(self, angle):
-        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 8 * math.sin(math.radians(angle)),
-                                               self.vy - 8 * math.cos(math.radians(angle)), -1))
+        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
+                                               self.vy - 5 * math.cos(math.radians(angle)), -1))
+        self.energy -= 11
     def update(self):
         if self.engine_on:
             self.accelerate()
         self.x += self.vx
         self.y += self.vy
         self.mask = pygame.mask.from_surface(self.display_image)
+        self.energy += 10
+        if self.energy > 1000:
+            self.energy = 1000
+        print(self.energy)
 
 

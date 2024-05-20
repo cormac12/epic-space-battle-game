@@ -212,9 +212,6 @@ while run:
                 p.current_weapon += 1
             elif event.y < 0 and p.current_weapon > 0:
                 p.current_weapon -= 1
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            torpedoes.append(Torpedo(p.x, p.y, p.vx, p.vy, get_angle_to_point(750, 500, mouse_pos[0], mouse_pos[1]), False, -1, -1 ))
-
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
 
@@ -222,7 +219,7 @@ while run:
     while len(globals.globals_dict["bullets"]) > 1000:
         globals.globals_dict["bullets"].pop(0)
 
-    if len(enemies) < 3:
+    if len(enemies) < 1:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
@@ -259,10 +256,14 @@ while run:
             if t.parent != -1:
                 if p.mask.overlap(pygame.Mask((1,1), True), (t.x-(p.x-p.display_image.get_width()/2), t.y - (p.y - p.display_image.get_height()/2))):
                     t.explode()
+            for b in globals.globals_dict["bullets"]:
+                if t.rect.colliderect(b.rect):
+                    t.explode()
         if t.exploding and p.mask.overlap(t.mask,
-                    (t.x - t.display_image.get_width() / 2 - (enemies[i].x - enemies[i].display_image.get_width() / 2),
-                        (t.y - t.display_image.get_height() / 2) - (enemies[i].y - enemies[i].display_image.get_height() / 2))):
+                    (t.x - t.display_image.get_width() / 2 - (p.x - p.display_image.get_width() / 2),
+                        (t.y - t.display_image.get_height() / 2) - (p.y - p.display_image.get_height() / 2))):
             p.health -= 25
+            print(p.health)
 
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
@@ -272,6 +273,9 @@ while run:
     # display_y = my_font.render(str(enemies[0].ccw), True, (255,255,255))
     display_fps = my_font.render(str(round(sum(fps_list)/len(fps_list))) + "/" + str(target_fps), True, (255,255,255))
     screen.fill((0, 0, 0))
+
+    health_bar = pygame.Rect(10, 200+(1000 -p.health)/5, 10, p.health/5)
+
     # ------Blit Zone Start------
 
     if laser_on:
@@ -300,6 +304,8 @@ while run:
     screen.blit(display_fps, (0, size[1]-30))
 
     # screen.blit(i, (100-p.x, 100-p.y))
+
+    pygame.draw.rect(screen, (0,255,0), health_bar)
 
     # ------Blit Zone End------
 
