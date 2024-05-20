@@ -12,6 +12,8 @@ class Torpedo:
         self.vy = vy
         self.angle = angle
 
+        self.start_frame = globals.globals_dict["frame"]
+
         self.do_targeting = do_targeting  # Boolean. if false, it will fly in a straight line
         self.target = target  # Int. if -1, the target is the player. Otherwise, it is an index in the enemy list
         self.engine_str = 0.75
@@ -43,26 +45,33 @@ class Torpedo:
             self.vy -= math.cos(math.radians(self.angle)) * self.engine_str
             self.vx -= math.sin(math.radians(self.angle)) * self.engine_str
         else:
-
-            if (globals.globals_dict["frame"] - self.explosion_start) <= 5:
-                self.display_image = pygame.transform.smoothscale_by(self.explosion_image,
-                                                                    (globals.globals_dict["frame"] - self.explosion_start) /5)
+            if (globals.globals_dict["frame"] - self.explosion_start) <= 7:
+                if (globals.globals_dict["frame"] - self.explosion_start) <= 5:
+                    self.display_image = pygame.transform.smoothscale_by(self.explosion_image,
+                                                                        (globals.globals_dict["frame"] - self.explosion_start) /5)
+                else:
+                    self.display_image = pygame.transform.smoothscale_by(self.explosion_image,
+                                                                        (2-(globals.globals_dict["frame"] - self.explosion_start - 5))/2)
                 self.rect = pygame.Rect(self.explosion_screen_x - self.display_image.get_width()/2,
                                         self.explosion_screen_y - self.display_image.get_height()/2,
                                         self.display_image.get_width(), self.display_image.get_height())
+
             else:
                 self.alive = False
 
+            self.mask = pygame.mask.from_surface(self.display_image)
 
 
 
 
 
     def explode(self):
-        self.exploding = True
-        self.explosion_start = globals.globals_dict["frame"]
-        self.explosion_screen_x = self.x - globals.globals_dict["camera_pos"][0]
-        self.explosion_screen_y = self.y - globals.globals_dict["camera_pos"][1]
+        if not self.exploding:
+            self.exploding = True
+            self.explosion_start = globals.globals_dict["frame"]
+            self.explosion_screen_x = self.x - globals.globals_dict["camera_pos"][0]
+            self.explosion_screen_y = self.y - globals.globals_dict["camera_pos"][1]
+            self.mask = pygame.mask.from_surface(self.display_image)
 
 
 

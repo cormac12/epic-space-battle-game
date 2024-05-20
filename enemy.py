@@ -26,7 +26,7 @@ class Enemy:
 
         self.main_engine_str = 0.18
 
-        self.cool_down_start = 0  # Records the frame when the last torpedo was fired
+        self.cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
         self.cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
 
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,

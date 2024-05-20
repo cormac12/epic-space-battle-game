@@ -85,7 +85,6 @@ while run:
     if len(fps_list) > 100:
         fps_list.pop(0)
 
-    print(len(torpedoes))
 
 
     mouse_pos = pygame.mouse.get_pos()
@@ -105,36 +104,32 @@ while run:
 
     for t in torpedoes:
         t.update()
+        if not t.exploding and frame > t.start_frame + 150:
+            t.explode()
         if not t.alive:
             torpedoes.remove(t)
-        # for e in enemies:
-        #     if t.rect.colliderect(e.rect):
-        #         t.explode()
-        # if t.rect.colliderect(p.rect):
-        #     t.explode()
 
 
 
 
-
-    for i in range(len(enemies)):
-        if enemies[i].alive:
-            enemies[i].update()
-            if enemies[i].get_distance_to_player() > 300:
-                print("FAR")
-                enemies[i].target_vector(enemies[i].get_angle_to_player(), 2, p.vx, p.vy)
-            elif enemies[i].get_distance_to_player() < 150:
-                print("CLOSE")
-                enemies[i].target_vector(enemies[i].get_angle_to_player() + 180, 2, p.vx, p.vy)
+    i = 0
+    for e in enemies:
+        if e.alive:
+            e.update()
+            if e.get_distance_to_player() > 300:
+                e.target_vector(e.get_angle_to_player(), 2, p.vx, p.vy)
+            elif e.get_distance_to_player() < 150:
+                e.target_vector(e.get_angle_to_player() + 180, 2, p.vx, p.vy)
             else:
-                print("GOOD")
-                enemies[i].target_vector(enemies[i].get_angle_to_player() + 60, 6, p.vx, p.vy)
-            if frame > enemies[i].cool_down_start + enemies[i].cool_down_duration:
-                torpedoes.append(Torpedo(enemies[i].x, enemies[i].y, enemies[i].vx, enemies[i].vy, enemies[i].get_angle_to_player(), False, -1, i))
-                enemies[i].cool_down_start = frame
+                e.target_vector(e.get_angle_to_player() + 60, 6, p.vx, p.vy)
+            if frame > e.cool_down_start + e.cool_down_duration:
+                torpedoes.append(Torpedo(e.x, e.y, e.vx, e.vy, e.get_angle_to_player(), False, -1, i))
+                e.cool_down_start = frame
 
         else:
             enemies.pop(i)
+        i += 1
+
 
 
     for i in globals.globals_dict["bullets"]:
@@ -192,9 +187,11 @@ while run:
                                              laser_image_transformed.get_height())
             last_p_angle = p.angle
         elif p.current_weapon == 1:
+            laser_on = False
             if frame % p.fire_rate == 0:
                 p.fire_point_defense(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
                                      + random.randint(-10,10)/10)
+
 
 
     else:
@@ -215,6 +212,9 @@ while run:
                 p.current_weapon += 1
             elif event.y < 0 and p.current_weapon > 0:
                 p.current_weapon -= 1
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            torpedoes.append(Torpedo(p.x, p.y, p.vx, p.vy, get_angle_to_point(750, 500, mouse_pos[0], mouse_pos[1]), False, -1, -1 ))
+
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
 
@@ -241,7 +241,28 @@ while run:
                 if t.parent != i:
                     if t.rect.colliderect(enemies[i].rect):
                         t.explode()
+            if t.exploding and pygame.Mask(enemies[i].rect.size, True).overlap(t.mask,
+                    (t.x-t.display_image.get_width()/2 -(enemies[i].x - enemies[i].display_image.get_width()/2),
+                     (t.y-t.display_image.get_height()/2) - (enemies[i].y - enemies[i].display_image.get_height()/2))):
+                enemies[i].health -= 25
 
+    for b in globals.globals_dict["bullets"]:
+        if p.mask.overlap(pygame.Mask((1,1), True), (b.x-(p.x-p.display_image.get_width()/2), b.y - (p.y - p.display_image.get_height()/2)))\
+                and (b.parent != -1 or b.start_frame + 30 <= frame):
+
+            p.health -= 2
+            print(p.health)
+            globals.globals_dict["bullets"].remove(b)
+
+    for t in torpedoes:
+        if not t.exploding:
+            if t.parent != -1:
+                if p.mask.overlap(pygame.Mask((1,1), True), (t.x-(p.x-p.display_image.get_width()/2), t.y - (p.y - p.display_image.get_height()/2))):
+                    t.explode()
+        if t.exploding and p.mask.overlap(t.mask,
+                    (t.x - t.display_image.get_width() / 2 - (enemies[i].x - enemies[i].display_image.get_width() / 2),
+                        (t.y - t.display_image.get_height() / 2) - (enemies[i].y - enemies[i].display_image.get_height() / 2))):
+            p.health -= 25
 
 
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
@@ -265,7 +286,6 @@ while run:
         pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 1,1))
 
     screen.blit(p.display_image, p.rect)
-
 
 
     for i in enemies:
