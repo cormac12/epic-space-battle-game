@@ -42,8 +42,10 @@ class Torpedo:
                                 self.display_image.get_width(),self.display_image.get_height())
 
         if not self.exploding:
-            self.vy -= math.cos(math.radians(self.angle)) * self.engine_str
-            self.vx -= math.sin(math.radians(self.angle)) * self.engine_str
+            if globals.globals_dict["frame"] <= self.start_frame + 26:
+                # I put a limit on torpedo speed to limit times when the torpedo is fast enough to fly through the player
+                self.vy -= math.cos(math.radians(self.angle)) * self.engine_str
+                self.vx -= math.sin(math.radians(self.angle)) * self.engine_str
         else:
             if (globals.globals_dict["frame"] - self.explosion_start) <= 7:
                 if (globals.globals_dict["frame"] - self.explosion_start) <= 5:

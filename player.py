@@ -27,9 +27,12 @@ class Player:
 
         self.health = 1000
         self.energy = 1000
+        self.energy_regen = 5
 
         self.engine_on = False
-        self.main_engine_str = .06
+        self.main_engine_str = .09
+
+        self.laser_on = False
 
         self.current_weapon = 0
         self.weapon_names = ["Laser", "Point Defense"]
@@ -55,6 +58,7 @@ class Player:
         self.vy -= math.cos(math.radians(self.angle)) * self.main_engine_str
         self.vx -= math.sin(math.radians(self.angle)) * self.main_engine_str
 
+
     def start_engine(self):
         self.engine_on = True
         self.image_index = "engine on"
@@ -68,16 +72,21 @@ class Player:
     def fire_point_defense(self, angle):
         globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
                                                self.vy - 5 * math.cos(math.radians(angle)), -1))
-        self.energy -= 11
+        self.energy -= 7
     def update(self):
         if self.engine_on:
             self.accelerate()
         self.x += self.vx
         self.y += self.vy
         self.mask = pygame.mask.from_surface(self.display_image)
-        self.energy += 10
+        self.energy += self.energy_regen
         if self.energy > 1000:
             self.energy = 1000
+
+        if self.engine_on:
+            self.energy -= 5
+        if self.laser_on:
+            self.energy -= 15
         print(self.energy)
 
 

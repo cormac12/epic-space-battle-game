@@ -65,7 +65,6 @@ clock = pygame.time.Clock()
 time_1 = 0
 time_2 = 0
 fps_list = []
-laser_on = False
 last_p_angle = ""
 
 # -------- Main Program Loop -----------
@@ -148,8 +147,6 @@ while run:
         p.rotate("counterclockwise", 2.25)
     elif keys[pygame.K_q]:
         p.rotate("counterclockwise", .75)
-    if keys[pygame.K_w]:
-        p.accelerate()
     if keys[pygame.K_SPACE]:
         fps = 1
         for i in torpedoes:
@@ -159,9 +156,9 @@ while run:
     if keys[pygame.K_DOWN]:
         target_fps /= 1.1
 
-    if pygame.mouse.get_pressed()[0]:
+    if pygame.mouse.get_pressed()[0] and p.energy > 0:
         if p.current_weapon == 0:
-            laser_on = True
+            p.laser_on = True
             if p.angle != last_p_angle:
                 laser_image_transformed = pygame.transform.rotate(laser_image, p.angle)
                 laser_mask = pygame.mask.from_surface(laser_image_transformed)
@@ -187,7 +184,7 @@ while run:
                                              laser_image_transformed.get_height())
             last_p_angle = p.angle
         elif p.current_weapon == 1:
-            laser_on = False
+            p.laser_on = False
             if frame % p.fire_rate == 0:
                 p.fire_point_defense(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
                                      + random.randint(-10,10)/10)
@@ -195,14 +192,14 @@ while run:
 
 
     else:
-        laser_on = False
+        p.laser_on = False
 
 
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_w and p.energy > 0:
                 p.start_engine()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
@@ -214,6 +211,11 @@ while run:
                 p.current_weapon -= 1
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
+
+    if p.energy <= 0:
+        p.stop_engine()
+        p.laser_on = False
+
 
     # If there are more than a thousand projectiles in the world, the oldest will be deleted
     while len(globals.globals_dict["bullets"]) > 1000:
@@ -275,16 +277,17 @@ while run:
     screen.fill((0, 0, 0))
 
     health_bar = pygame.Rect(10, 200+(1000 -p.health)/5, 10, p.health/5)
+    energy_bar = pygame.Rect(25, 200+(1000 -p.energy)/5, 10, p.energy/5)
 
     # ------Blit Zone Start------
 
-    if laser_on:
+    if p.laser_on:
         # screen.blit(laser_image_transformed, laser_rect)
         pygame.draw.line(screen, (15,225,15), (750, 500), (750 + -1000 * math.sin(math.radians(p.angle)),
                                                          500 + -1000 *math.cos(math.radians(p.angle))), width=5)
         for i in enemies:
             if i.alive and i.mask.overlap(laser_mask, (laser_rect.left-i.rect.left,laser_rect.top -i.rect.top)):
-                i.health -= 1
+                i.health -= 5
 
     for i in globals.globals_dict["bullets"]:
         pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 1,1))
@@ -306,6 +309,7 @@ while run:
     # screen.blit(i, (100-p.x, 100-p.y))
 
     pygame.draw.rect(screen, (0,255,0), health_bar)
+    pygame.draw.rect(screen, (255, 255, 0), energy_bar)
 
     # ------Blit Zone End------
 
