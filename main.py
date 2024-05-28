@@ -35,16 +35,15 @@ size = (1500, 1000)
 screen = pygame.display.set_mode(size)
 
 
-# I'm just keeping this as a placeholder for when I need to add text
-name = "Mr. Das"
-
-# render the text for later
-display_name = my_font.render(name, True, (255, 255, 255))
+score = 0
+display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
 
 # The loop will carry on until the user exits the game (e.g. clicks the close button).
 run = True
 
 p = Player()
+
+
 
 camera_pos = (0,0)
 
@@ -135,18 +134,18 @@ while run:
         i.update()
 
 
-
-
     keys = pygame.key.get_pressed()
+    if not p.power_off:
+        if keys[pygame.K_d]:
+            p.rotate("clockwise",2.25)
+        elif keys[pygame.K_e]:
+            p.rotate("clockwise", .75)
+        if keys[pygame.K_a]:
+            p.rotate("counterclockwise", 2.25)
+        elif keys[pygame.K_q]:
+            p.rotate("counterclockwise", .75)
 
-    if keys[pygame.K_d]:
-        p.rotate("clockwise",2.25)
-    elif keys[pygame.K_e]:
-        p.rotate("clockwise", .75)
-    if keys[pygame.K_a]:
-        p.rotate("counterclockwise", 2.25)
-    elif keys[pygame.K_q]:
-        p.rotate("counterclockwise", .75)
+
     if keys[pygame.K_SPACE]:
         fps = 1
         for i in torpedoes:
@@ -156,7 +155,7 @@ while run:
     if keys[pygame.K_DOWN]:
         target_fps /= 1.1
 
-    if pygame.mouse.get_pressed()[0] and p.energy > 0:
+    if pygame.mouse.get_pressed()[0] and not p.power_off:
         if p.current_weapon == 0:
             p.laser_on = True
             if p.angle != last_p_angle:
@@ -199,7 +198,7 @@ while run:
     # --- Main event loop
     for event in pygame.event.get():  # User did something
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w and p.energy > 0:
+            if event.key == pygame.K_w and not p.power_off:
                 p.start_engine()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
@@ -212,7 +211,7 @@ while run:
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
 
-    if p.energy <= 0:
+    if p.power_off:
         p.stop_engine()
         p.laser_on = False
 
@@ -225,6 +224,8 @@ while run:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
+        score += 1000
+        display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
 
 
 
@@ -253,6 +254,7 @@ while run:
             print(p.health)
             globals.globals_dict["bullets"].remove(b)
 
+
     for t in torpedoes:
         if not t.exploding:
             if t.parent != -1:
@@ -260,6 +262,11 @@ while run:
                     t.explode()
             for b in globals.globals_dict["bullets"]:
                 if t.rect.colliderect(b.rect):
+                    t.explode()
+            if p.laser_on:
+                if laser_mask.overlap(pygame.mask.from_surface(t.display_image),
+                        (t.x - t.display_image.get_width() / 2 - (laser_rect.x),
+                            (t.y - t.display_image.get_height() / 2) - (laser_rect.y))):
                     t.explode()
         if t.exploding and p.mask.overlap(t.mask,
                     (t.x - t.display_image.get_width() / 2 - (p.x - p.display_image.get_width() / 2),
@@ -271,8 +278,7 @@ while run:
     display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
     display_y = my_font.render(str(enemies[0].vy), True, (255,255,255))
 
-    # display_x = my_font.render(str(enemies[0].cw), True, (255,255,255))
-    # display_y = my_font.render(str(enemies[0].ccw), True, (255,255,255))
+
     display_fps = my_font.render(str(round(sum(fps_list)/len(fps_list))) + "/" + str(target_fps), True, (255,255,255))
     screen.fill((0, 0, 0))
 
@@ -282,7 +288,6 @@ while run:
     # ------Blit Zone Start------
 
     if p.laser_on:
-        # screen.blit(laser_image_transformed, laser_rect)
         pygame.draw.line(screen, (15,225,15), (750, 500), (750 + -1000 * math.sin(math.radians(p.angle)),
                                                          500 + -1000 *math.cos(math.radians(p.angle))), width=5)
         for i in enemies:
@@ -302,14 +307,18 @@ while run:
     for t in torpedoes:
         screen.blit(t.display_image, t.rect)
 
-    screen.blit(display_x, (0, 0))
-    screen.blit(display_y, (0, 15))
-    screen.blit(display_fps, (0, size[1]-30))
 
+    screen.blit(display_fps, (0, size[1]-30))
+    screen.blit(display_score, (0,0))
     # screen.blit(i, (100-p.x, 100-p.y))
 
     pygame.draw.rect(screen, (0,255,0), health_bar)
-    pygame.draw.rect(screen, (255, 255, 0), energy_bar)
+    if p.power_off:
+        pygame.draw.rect(screen, (255, 0, 0), energy_bar)
+
+
+    else:
+        pygame.draw.rect(screen, (100, 150, 255), energy_bar)
 
     # ------Blit Zone End------
 

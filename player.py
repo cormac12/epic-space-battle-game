@@ -26,8 +26,10 @@ class Player:
         self.vy = 0
 
         self.health = 1000
+
         self.energy = 1000
         self.energy_regen = 5
+        self.power_off = False
 
         self.engine_on = False
         self.main_engine_str = .09
@@ -88,5 +90,10 @@ class Player:
         if self.laser_on:
             self.energy -= 15
         print(self.energy)
+        if self.energy <= 0:
+            self.power_off = True
+        if self.power_off == True and self.energy >= 500:
+            self.power_off = False
+
 
 
