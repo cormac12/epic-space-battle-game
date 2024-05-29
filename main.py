@@ -187,13 +187,18 @@ while run:
             if frame % p.fire_rate == 0:
                 p.fire_point_defense(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
                                      + random.randint(-10,10)/10)
+        elif p.current_weapon == 2:
+            p.laser_on = False
+            if p.last_railgun_time + p.railgun_cooldown <= frame:
+                p.fire_railgun(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
+                                     + random.randint(-10,10)/10)
 
 
 
     else:
         p.laser_on = False
 
-
+    print(p.last_railgun_time)
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
@@ -220,7 +225,13 @@ while run:
     while len(globals.globals_dict["bullets"]) > 1000:
         globals.globals_dict["bullets"].pop(0)
 
-    if len(enemies) < 1:
+    if score <= 2000 and len(enemies) < 1:
+        enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
+                             random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
+                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
+        score += 1000
+        display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
+    elif 2000 < score <= 6000 and len(enemies) < 2:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
@@ -232,7 +243,7 @@ while run:
     for i in range(len(enemies)):
         for b in globals.globals_dict["bullets"]:
             if enemies[i].alive and enemies[i].rect.colliderect(b.rect):
-                enemies[i].health -= 2
+                enemies[i].health -= b.damage
                 globals.globals_dict["bullets"].remove(b)
 
 
@@ -250,8 +261,7 @@ while run:
         if p.mask.overlap(pygame.Mask((1,1), True), (b.x-(p.x-p.display_image.get_width()/2), b.y - (p.y - p.display_image.get_height()/2)))\
                 and (b.parent != -1 or b.start_frame + 30 <= frame):
 
-            p.health -= 2
-            print(p.health)
+            p.health -= b.damage
             globals.globals_dict["bullets"].remove(b)
 
 
@@ -275,8 +285,7 @@ while run:
             print(p.health)
 
 
-    display_x = my_font.render(str(enemies[0].vx), True, (255,255,255))
-    display_y = my_font.render(str(enemies[0].vy), True, (255,255,255))
+
 
 
     display_fps = my_font.render(str(round(sum(fps_list)/len(fps_list))) + "/" + str(target_fps), True, (255,255,255))
@@ -295,7 +304,7 @@ while run:
                 i.health -= 5
 
     for i in globals.globals_dict["bullets"]:
-        pygame.draw.rect(screen, (255,150,50), pygame.Rect(i.x - camera_pos[0], i.y -camera_pos[1], 1,1))
+        pygame.draw.rect(screen, i.color, i.rect)
 
     screen.blit(p.display_image, p.rect)
 

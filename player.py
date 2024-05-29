@@ -37,10 +37,12 @@ class Player:
         self.laser_on = False
 
         self.current_weapon = 0
-        self.weapon_names = ["Laser", "Point Defense"]
+        self.weapon_names = ["Laser", "Point Defense", "Railgun"]
 
         self.live_rounds = []
         self.fire_rate = 1 # frames per round
+        self.last_railgun_time = 0
+        self.railgun_cooldown = 30
 
     def rotate(self, direction, magnitude):
         if direction == "clockwise":
@@ -73,8 +75,17 @@ class Player:
 
     def fire_point_defense(self, angle):
         globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
-                                               self.vy - 5 * math.cos(math.radians(angle)), -1))
+                                                      self.vy - 5 * math.cos(math.radians(angle)), (1,1), (255,0,0), 1, -1))
+
         self.energy -= 7
+
+    def fire_railgun(self, angle):
+        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 15 * math.sin(math.radians(angle)),
+                                                      self.vy - 15 * math.cos(math.radians(angle)), (4,4), (255,255,255), 100, -1))
+        self.last_railgun_time = globals.globals_dict["frame"]
+
+        self.energy -= 150
+
     def update(self):
         if self.engine_on:
             self.accelerate()
@@ -86,13 +97,12 @@ class Player:
             self.energy = 1000
 
         if self.engine_on:
-            self.energy -= 5
+            self.energy -= 3
         if self.laser_on:
-            self.energy -= 15
-        print(self.energy)
+            self.energy -= 0
         if self.energy <= 0:
             self.power_off = True
-        if self.power_off == True and self.energy >= 500:
+        if self.power_off and self.energy >= 500:
             self.power_off = False
 
 
