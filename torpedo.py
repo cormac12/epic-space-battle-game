@@ -16,7 +16,7 @@ class Torpedo:
 
         self.do_targeting = do_targeting  # Boolean. if false, it will fly in a straight line
         self.target = target  # Int. if -1, the target is the player. Otherwise, it is an index in the enemy list
-        self.engine_str = 0.75
+        self.engine_str = 0.4
 
         self.original_image = pygame.image.load("rocket.png")
         self.parent = parent  # Int. if -1, the target is the player. Otherwise, it is an index in the enemy list

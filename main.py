@@ -114,15 +114,21 @@ while run:
     for e in enemies:
         if e.alive:
             e.update()
-            if e.get_distance_to_player() > 300:
-                e.target_vector(e.get_angle_to_player(), 2, p.vx, p.vy)
-            elif e.get_distance_to_player() < 150:
-                e.target_vector(e.get_angle_to_player() + 180, 2, p.vx, p.vy)
-            else:
-                e.target_vector(e.get_angle_to_player() + 60, 6, p.vx, p.vy)
-            if frame > e.cool_down_start + e.cool_down_duration:
-                torpedoes.append(Torpedo(e.x, e.y, e.vx, e.vy, e.get_angle_to_player(), False, -1, i))
-                e.cool_down_start = frame
+            if e.ai_mode == 0:
+                if e.get_distance_to_player() > 300:
+                    e.target_vector(e.get_angle_to_player(), 2, p.vx, p.vy)
+                elif e.get_distance_to_player() < 150:
+                    e.target_vector(e.get_angle_to_player() + 180, 2, p.vx, p.vy)
+                else:
+                    e.target_vector(e.get_angle_to_player() + 60, 6, p.vx, p.vy)
+                if frame > e.cool_down_start + e.cool_down_duration and random.randint(1,120) == 1:
+                    e.ai_mode = 1
+            elif e.ai_mode == 1:
+                e.target_vector(e.get_angle_to_player(), 0, p.vx, p.vy)
+                if p.vx - .5 <= e.vx <= p.vx + .5 and p.vy - .5 <= e.vy <= p.vy + .5:
+                    torpedoes.append(Torpedo(e.x, e.y, e.vx, e.vy, e.get_angle_to_player(), False, -1, i))
+                    e.cool_down_start = frame
+                    e.ai_mode = 0
 
         else:
             enemies.pop(i)
@@ -231,7 +237,7 @@ while run:
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
         score += 1000
         display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
-    elif 2000 < score <= 6000 and len(enemies) < 2:
+    elif 2000 < score and len(enemies) < 2:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
                              (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
@@ -275,8 +281,8 @@ while run:
                     t.explode()
             if p.laser_on:
                 if laser_mask.overlap(pygame.mask.from_surface(t.display_image),
-                        (t.x - t.display_image.get_width() / 2 - (laser_rect.x),
-                            (t.y - t.display_image.get_height() / 2) - (laser_rect.y))):
+                        (t.rect.x - t.display_image.get_width() / 2 - (laser_rect.x),
+                            (t.rect.y - t.display_image.get_height() / 2) - (laser_rect.y))):
                     t.explode()
         if t.exploding and p.mask.overlap(t.mask,
                     (t.x - t.display_image.get_width() / 2 - (p.x - p.display_image.get_width() / 2),

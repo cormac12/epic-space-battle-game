@@ -99,7 +99,7 @@ class Player:
         if self.engine_on:
             self.energy -= 3
         if self.laser_on:
-            self.energy -= 0
+            self.energy -= 10
         if self.energy <= 0:
             self.power_off = True
         if self.power_off and self.energy >= 500:

@@ -29,6 +29,8 @@ class Enemy:
         self.cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
         self.cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
 
+        self.ai_mode = 0
+
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
                     self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
                     self.display_image.get_width(),
