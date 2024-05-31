@@ -53,7 +53,7 @@ globals.globals_dict["camera_pos"] = camera_pos
 globals.globals_dict["frame"] = 0
 globals.globals_dict["bullets"] = []
 
-enemies = [Enemy(100, 100, 2, 2)]
+enemies = [Enemy(100, 100, 2, 2, 1)]
 torpedoes = []
 
 laser_image = pygame.image.load("laser.png")
@@ -121,13 +121,13 @@ while run:
                     e.target_vector(e.get_angle_to_player() + 180, 2, p.vx, p.vy)
                 else:
                     e.target_vector(e.get_angle_to_player() + 60, 6, p.vx, p.vy)
-                if frame > e.cool_down_start + e.cool_down_duration and random.randint(1,120) == 1:
+                if frame > e.torpedo_cool_down_start + e.torpedo_cool_down_duration and random.randint(1,120) == 1:
                     e.ai_mode = 1
             elif e.ai_mode == 1:
                 e.target_vector(e.get_angle_to_player(), 0, p.vx, p.vy)
                 if p.vx - .5 <= e.vx <= p.vx + .5 and p.vy - .5 <= e.vy <= p.vy + .5:
                     torpedoes.append(Torpedo(e.x, e.y, e.vx, e.vy, e.get_angle_to_player(), False, -1, i))
-                    e.cool_down_start = frame
+                    e.torpedo_cool_down_start = frame
                     e.ai_mode = 0
 
         else:
@@ -234,13 +234,13 @@ while run:
     if score <= 2000 and len(enemies) < 1:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
-                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
+                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 0))
         score += 1000
         display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
     elif 2000 < score and len(enemies) < 2:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
-                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10)))
+                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 0))
         score += 1000
         display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
 

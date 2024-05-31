@@ -5,18 +5,37 @@ import math
 
 
 class Enemy:
-    def __init__(self, x, y, vx, vy):
+    def __init__(self, x, y, vx, vy, type):
+        self.type = type  # type 0 is a basic fighter type 1 is a gunship
         self.angle = 0
 
-        self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
-            "spaceship2.png")}
-        self.image_index = "engine off"
+        if self.type == 0:
+            self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
+                "spaceship2.png")}
+            self.image_index = "engine off"
+
+            self.health = 50
+            self.main_engine_str = 0.18
+            self.turn_rate = 8
+
+            self.ai_mode = 0
+        elif self.type == 1:
+            # TEMPORARY IMAGE CODE
+            self.images = {"engine off": pygame.transform.scale_by(pygame.image.load("spaceship2 off.png"), 7), "engine on": pygame.transform.scale_by(pygame.image.load(
+                "spaceship2.png"), 7)}
+            self.image_index = "engine off"
+
+            self.health = 500
+            self.main_engine_str = .05
+            self.turn_rate = 1.5
+
+            self.ai_mode = 0
+
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
         self.mask = pygame.mask.from_surface(self.display_image)
 
         self.engine_on = False
 
-        self.health = 50
 
         self.x = x
         self.y = y
@@ -24,12 +43,9 @@ class Enemy:
         self.vy = vy
         self.alive = True
 
-        self.main_engine_str = 0.18
 
-        self.cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
-        self.cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
-
-        self.ai_mode = 0
+        self.torpedo_cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
+        self.torpedo_cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
 
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
                     self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
@@ -38,11 +54,11 @@ class Enemy:
 
     def rotate(self, direction):
         if direction == "clockwise":
-            self.angle -= 8
+            self.angle -= self.turn_rate
 
 
         elif direction == "counterclockwise":
-            self.angle += 8
+            self.angle += self.turn_rate
 
 
         self.angle %= 360
@@ -119,12 +135,11 @@ class Enemy:
 
     def target_direction(self, target): # rotates the ship toward the player.
         # returns true when pointing at the target
-        # this func still goes the wrong way around sometimes
         target %= 360
         target = round(target, 0)
 
         if self.angle < 180:
-            if self.angle <= (target + 8) % 360 and (self.angle + 8) % 360 >= target:
+            if self.angle <= (target + self.turn_rate) % 360 and (self.angle + self.turn_rate) % 360 >= target:
                 self.point(target)
 
                 return True
@@ -134,8 +149,8 @@ class Enemy:
                 self.rotate("clockwise")
         elif self.angle > 180:
 
-            if ((self.angle <= (target + 8) % 360 or self.angle <= target + 8)
-                    and (target <= (self.angle + 8) % 360 or target <= self.angle + 8)):
+            if ((self.angle <= (target + self.turn_rate) % 360 or self.angle <= target + self.turn_rate)
+                    and (target <= (self.angle + self.turn_rate) % 360 or target <= self.angle + self.turn_rate)):
                 self.point(target)
 
                 return True
