@@ -84,7 +84,7 @@ class Player:
                                                       self.vy - 15 * math.cos(math.radians(angle)), (4,4), (255,255,255), 100, -1))
         self.last_railgun_time = globals.globals_dict["frame"]
 
-        self.energy -= 150
+        self.energy -= 250
 
     def update(self):
         if self.engine_on:

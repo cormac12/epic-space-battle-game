@@ -21,15 +21,14 @@ class Enemy:
             self.ai_mode = 0
         elif self.type == 1:
             # TEMPORARY IMAGE CODE
-            self.images = {"engine off": pygame.transform.scale_by(pygame.image.load("spaceship2 off.png"), 7), "engine on": pygame.transform.scale_by(pygame.image.load(
-                "spaceship2.png"), 7)}
+            self.images = {"engine off": pygame.image.load("gunship 00.png"), "engine on": pygame.image.load("gunship 11.png")}
             self.image_index = "engine off"
 
             self.health = 500
             self.main_engine_str = .05
             self.turn_rate = 1.5
 
-            self.ai_mode = 0
+            self.ai_mode = 2
 
         self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
         self.mask = pygame.mask.from_surface(self.display_image)

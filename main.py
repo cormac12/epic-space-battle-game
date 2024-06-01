@@ -53,7 +53,7 @@ globals.globals_dict["camera_pos"] = camera_pos
 globals.globals_dict["frame"] = 0
 globals.globals_dict["bullets"] = []
 
-enemies = [Enemy(100, 100, 2, 2, 1)]
+enemies = [Enemy(100, 100, 2, 2, 1), Enemy(200, 200, 2, 2, 0)]
 torpedoes = []
 
 laser_image = pygame.image.load("laser.png")
@@ -129,12 +129,27 @@ while run:
                     torpedoes.append(Torpedo(e.x, e.y, e.vx, e.vy, e.get_angle_to_player(), False, -1, i))
                     e.torpedo_cool_down_start = frame
                     e.ai_mode = 0
+            elif e.ai_mode == 2:
+                if e.get_distance_to_player() < 700:
+                    e.stop_engine()
+                    e.target_direction(e.get_angle_to_player())
+
+                else:
+                    e.ai_mode = 3
+            elif e.ai_mode == 3:
+                if not e.get_distance_to_player() < 700:
+                    e.target_vector(e.get_angle_to_player(), 3, p.vx, p.vy)
+                else:
+                    e.ai_mode = 4
+            elif e.ai_mode == 4:
+                if math.sqrt((e.vx - p.vx)**2 + (e.vy - p.vy)**2) > 1:
+                    e.target_vector(e.get_angle_to_player(), 0, p.vx, p.vy)
+                else:
+                    e.ai_mode = 2
 
         else:
             enemies.pop(i)
         i += 1
-
-
 
     for i in globals.globals_dict["bullets"]:
         i.update()
@@ -204,7 +219,7 @@ while run:
     else:
         p.laser_on = False
 
-    print(p.last_railgun_time)
+
 
     # --- Main event loop
     for event in pygame.event.get():  # User did something
@@ -288,7 +303,7 @@ while run:
                     (t.x - t.display_image.get_width() / 2 - (p.x - p.display_image.get_width() / 2),
                         (t.y - t.display_image.get_height() / 2) - (p.y - p.display_image.get_height() / 2))):
             p.health -= 25
-            print(p.health)
+
 
 
 
