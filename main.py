@@ -23,6 +23,36 @@ def get_angle_to_point(x1,y1, x2, y2):
     else:
         return 90
 
+def line_vector_collision(line_start, line_end, vector_start, vector_angle):
+    angle_to_start = get_angle_to_point(vector_start[0], vector_start[1], line_start[0], line_start[1])
+    angle_to_end = get_angle_to_point(vector_start[0], vector_start[1], line_end[0], line_end[1])
+    if abs(angle_to_end - angle_to_start) < 180:
+        return min(angle_to_start, angle_to_end) <= vector_angle <= max(angle_to_start, angle_to_end)
+    else:
+        return not min(angle_to_start, angle_to_end) <= vector_angle <= max(angle_to_start, angle_to_end)
+
+def get_cross_section(mask, mask_coords, point):
+    # returns the line from the two points in the mask with the most extreme angles, relative to point
+    outline = mask.outline()
+    angles = []
+    for i in outline:
+        angles.append(get_angle_to_point(point[0], point[1], mask_coords[0] + i[0], mask_coords[1] + i[1]))
+    min_angle = angles[0]
+    max_angle = angles[0]
+
+    min_index = 0
+    max_index = 0
+
+    for i in range(len(angles)):
+        if angles[i] < min_angle:
+            min_angle = angles[i]
+            min_index = i
+        if angles[i] > max_angle:
+            max_angle = angles[i]
+            max_index = i
+    return (outline[min_index], outline[max_index])
+
+
 
 # set up pygame modules
 pygame.init()
@@ -70,6 +100,10 @@ last_p_angle = ""
 while run:
     clock.tick(target_fps)
 
+    line = get_cross_section(enemies[0].mask, (enemies[0].x - enemies[0].display_image.get_width()/2,
+                                               enemies[0].y - enemies[0].display_image.get_height()/2,), (p.x, p.y))
+    print(line_vector_collision(line[0], line[1], (p.x, p.y), p.angle))
+
     frame += 1
 
     time_1 = time_2
@@ -106,8 +140,6 @@ while run:
             t.explode()
         if not t.alive:
             torpedoes.remove(t)
-
-
 
 
     i = 0
