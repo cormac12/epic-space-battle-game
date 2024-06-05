@@ -32,7 +32,7 @@ class Player:
         self.power_off = False
 
         self.engine_on = False
-        self.main_engine_str = .09
+        self.main_engine_str = .15
 
         self.laser_on = False
 
@@ -75,7 +75,7 @@ class Player:
 
     def fire_point_defense(self, angle):
         globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
-                                                      self.vy - 5 * math.cos(math.radians(angle)), (1,1), (255,0,0), 1, -1))
+                                                      self.vy - 5 * math.cos(math.radians(angle)), (2,2), (255,0,0), 10, -1))
 
         self.energy -= 7
 

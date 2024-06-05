@@ -6,18 +6,20 @@ import random
 import time
 import math
 from torpedo import Torpedo
+from laser import Laser
+from bullet import Bullet
 
 
 def get_angle_to_point(x1,y1, x2, y2):
     if y1 - y2 != 0:
         if x1 >= x2 and y1 >= y2:
-            return math.degrees(math.atan((x1 - x2) / (y1 - y2)))
+            return math.degrees(math.atan((x1 - x2) / (y1 - y2))) % 360
         elif x1 >= x2 and y1 <= y2:
-            return math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180
+            return (math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180) % 360
         elif x1 <= x2 and y1 <= y2:
-            return math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180
+            return (math.degrees((math.atan((x1 - x2) / (y1 - y2)))) + 180) % 360
         elif x1 <= x2 and y1 >= y2:
-            return math.degrees(math.atan((x1 - x2) / (y1 - y2)))
+            return math.degrees(math.atan((x1 - x2) / (y1 - y2))) % 360
     elif x1 - x2 < 0:
         return 270
     else:
@@ -31,7 +33,7 @@ def line_vector_collision(line_start, line_end, vector_start, vector_angle):
     else:
         return not min(angle_to_start, angle_to_end) <= vector_angle <= max(angle_to_start, angle_to_end)
 
-def get_cross_section(mask, mask_coords, point):
+def get_mask_cross_section(mask, mask_coords, point):
     # returns the line from the two points in the mask with the most extreme angles, relative to point
     outline = mask.outline()
     angles = []
@@ -50,8 +52,30 @@ def get_cross_section(mask, mask_coords, point):
         if angles[i] > max_angle:
             max_angle = angles[i]
             max_index = i
-    return (outline[min_index], outline[max_index])
+    return ((outline[min_index][0] + mask_coords[0], outline[min_index][1] + mask_coords[1]),
+            ((outline[max_index][0] + mask_coords[0], outline[max_index][1] + mask_coords[1])))
 
+def get_rect_cross_section(rect, rect_coords, point):
+    corners = [rect_coords, (rect_coords[0] + rect.width, rect_coords[1]),
+                (rect_coords[0], rect_coords[1] + rect.height),
+                (rect_coords[0] + rect.width, rect_coords[1] + rect.height)]
+    angles = []
+    for i in corners:
+        angles.append(get_angle_to_point(point[0], point[1], i[0], i[1]))
+    min_angle = angles[0]
+    max_angle = angles[0]
+
+    min_index = 0
+    max_index = 0
+
+    for i in range(len(angles)):
+        if angles[i] < min_angle:
+            min_angle = angles[i]
+            min_index = i
+        if angles[i] > max_angle:
+            max_angle = angles[i]
+            max_index = i
+    return ((corners[min_index][0], corners[min_index][1]), ((corners[max_index][0], corners[max_index][1])))
 
 
 # set up pygame modules
@@ -82,11 +106,10 @@ globals.globals_dict["player_y"] = p.y
 globals.globals_dict["camera_pos"] = camera_pos
 globals.globals_dict["frame"] = 0
 globals.globals_dict["bullets"] = []
+globals.globals_dict["lasers"] = [Laser((p.x, p.y), p.angle, 5, (10, 255, 10), 8, -1)]
 
-enemies = [Enemy(100, 100, 2, 2, 1), Enemy(200, 200, 2, 2, 0)]
+enemies = [Enemy(100, 100, 2, 2, 1, 0), Enemy(200, 200, 2, 2, 0, 1)]
 torpedoes = []
-
-laser_image = pygame.image.load("laser.png")
 
 target_fps = 30
 frame = 0
@@ -100,9 +123,6 @@ last_p_angle = ""
 while run:
     clock.tick(target_fps)
 
-    line = get_cross_section(enemies[0].mask, (enemies[0].x - enemies[0].display_image.get_width()/2,
-                                               enemies[0].y - enemies[0].display_image.get_height()/2,), (p.x, p.y))
-    print(line_vector_collision(line[0], line[1], (p.x, p.y), p.angle))
 
     frame += 1
 
@@ -132,7 +152,6 @@ while run:
     # ------ End of Update Globals --------
 
     # ------ Update World Objects ---------
-
 
     for t in torpedoes:
         t.update()
@@ -164,7 +183,21 @@ while run:
             elif e.ai_mode == 2:
                 if e.get_distance_to_player() < 700:
                     e.stop_engine()
-                    e.target_direction(e.get_angle_to_player())
+                    if e.last_laser_time + 60 < frame:
+                        if e.sweep_direction == 0:
+                            e.sweep_direction = -1 if random.randint(0,1) == 0 else 1
+                        if not e.laser_is_on:
+                            if e.target_direction(e.get_angle_to_player()+ -15 * e.sweep_direction):
+                                e.laser_is_on = True
+                                e.start_angle = e.angle
+                        if e.laser_is_on:
+                            e.rotate("clockwise" if e.sweep_direction == -1 else "counterclockwise")
+                            if e.sweep_direction == 1 and e.angle > (e.start_angle + 30) % 360 or e.sweep_direction == -1 and e.angle < (e.start_angle - 30) %360:
+                                e.laser_is_on = False
+                                e.last_laser_time = frame
+                                e.sweep_direction = 0
+                                print("Done")
+
 
                 else:
                     e.ai_mode = 3
@@ -180,8 +213,24 @@ while run:
                     e.ai_mode = 2
 
         else:
+            if e.type == 1:
+                globals.globals_dict["lasers"].pop(e.laser_index)
             enemies.pop(i)
+            for x in range(len(enemies)):
+                if x > i:
+                    enemies[x].index -= 1
+            for x in range(len(globals.globals_dict["lasers"])):
+                if globals.globals_dict["lasers"][x].parent > i:
+                    globals.globals_dict["lasers"][x].parent -= 1
         i += 1
+
+    for l in globals.globals_dict["lasers"]:
+        if l.parent != -1:
+            l.set_angle(enemies[l.parent].angle)
+            l.set_pos(enemies[l.parent].x, enemies[l.parent].y)
+            l.is_on = enemies[l.parent].laser_is_on
+
+
 
     for i in globals.globals_dict["bullets"]:
         i.update()
@@ -199,6 +248,10 @@ while run:
             p.rotate("counterclockwise", .75)
 
 
+
+    globals.globals_dict["lasers"][0].set_angle(p.angle)
+    globals.globals_dict["lasers"][0].set_pos(p.x, p.y)
+
     if keys[pygame.K_SPACE]:
         fps = 1
         for i in torpedoes:
@@ -211,30 +264,7 @@ while run:
     if pygame.mouse.get_pressed()[0] and not p.power_off:
         if p.current_weapon == 0:
             p.laser_on = True
-            if p.angle != last_p_angle:
-                laser_image_transformed = pygame.transform.rotate(laser_image, p.angle)
-                laser_mask = pygame.mask.from_surface(laser_image_transformed)
-                if p.angle <= 90:
-                    laser_rect = pygame.Rect(750-laser_image_transformed.get_width() + 2.5 * math.cos(math.radians(p.angle)),
-                                             500-laser_image_transformed.get_height() + 2.5 * math.sin(math.radians(p.angle)),
-                                             laser_image_transformed.get_width(),
-                                             laser_image_transformed.get_height())
-                elif p.angle <= 180:
-                    laser_rect = pygame.Rect(750-laser_image_transformed.get_width() - 2.5 * math.cos(math.radians(p.angle)),
-                                             500 - 2.5 * math.sin(math.radians(p.angle)),
-                                             laser_image_transformed.get_width(),
-                                             laser_image_transformed.get_height())
-                elif p.angle <= 270:
-                    laser_rect = pygame.Rect(750 + 2.5 * math.cos(math.radians(p.angle)),
-                                             500 + 2.5 * math.sin(math.radians(p.angle)),
-                                             laser_image_transformed.get_width(),
-                                             laser_image_transformed.get_height())
-                elif p.angle <= 360:
-                    laser_rect = pygame.Rect(750 - 2.5 * math.cos(math.radians(p.angle)) ,
-                                             500-laser_image_transformed.get_height() - 2.5 * math.sin(math.radians(p.angle)),
-                                             laser_image_transformed.get_width(),
-                                             laser_image_transformed.get_height())
-            last_p_angle = p.angle
+
         elif p.current_weapon == 1:
             p.laser_on = False
             if frame % p.fire_rate == 0:
@@ -266,6 +296,9 @@ while run:
                 p.current_weapon += 1
             elif event.y < 0 and p.current_weapon > 0:
                 p.current_weapon -= 1
+
+            torpedoes.append(Torpedo(p.x, p.y, p.vx, p.vy, get_angle_to_point(750, 500, pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]), False, -1, -1))
+
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
 
@@ -281,21 +314,64 @@ while run:
     if score <= 2000 and len(enemies) < 1:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
-                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 0))
+                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 1, len(enemies)))
         score += 1000
         display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
     elif 2000 < score and len(enemies) < 2:
         enemies.append(Enemy(random.randint(round(camera_pos[0]), round(camera_pos[0]+1200)),
                              random.randint(round(camera_pos[1]), round(camera_pos[1]+800)),
-                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 0))
+                             (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 1, len(enemies)))
         score += 1000
         display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
+
+    globals.globals_dict["lasers"][0].is_on = p.laser_on
+
+    enemy_index = -1
+
+    for l in globals.globals_dict["lasers"]:
+        if l.is_on:
+            for e in enemies:
+                enemy_index += 1
+                if l.parent != enemy_index:
+                    has_been_hit = False
+                    if e.type == 1:
+                        for v in l.vectors:
+                            cross_section = get_mask_cross_section(e.mask, (e.x-e.display_image.get_width()/2,
+                                                                            e.y - e.display_image.get_height()/2), v[0])
+                            if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
+                                e.health -= l.damage
+                                has_been_hit = True
+                    elif e.type == 0:  # type 0 enemies are so small that you can't really tell that I use rect collision
+                        for v in l.vectors:
+                            cross_section = get_rect_cross_section(e.rect, (e.x-e.display_image.get_width()/2,
+                                                                            e.y - e.display_image.get_height()/2), v[0])
+                            if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
+                                e.health -= l.damage
+                                has_been_hit = True
+            for t in torpedoes:
+                if not t.exploding:
+                    for v in l.vectors:
+                        cross_section = get_rect_cross_section(t.rect, (t.x - t.display_image.get_width()/2,
+                                                                        t.y - t.display_image.get_height()/2), v[0])
+                        if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]):
+                            t.explode()
+
+
+            has_been_hit = False
+            if l.parent != -1:
+                for v in l.vectors:
+                    cross_section = get_mask_cross_section(p.mask, (p.x - p.display_image.get_width() / 2,
+                                                                    p.y - p.display_image.get_height() / 2), v[0])
+                    if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
+                        p.health -= l.damage
+                        has_been_hit = True
+
 
 
 
     for i in range(len(enemies)):
         for b in globals.globals_dict["bullets"]:
-            if enemies[i].alive and enemies[i].rect.colliderect(b.rect):
+            if enemies[i].alive and enemies[i].rect.colliderect(b.rect) and (b.parent != e.index or b.start_frame + 30 <= frame):
                 enemies[i].health -= b.damage
                 globals.globals_dict["bullets"].remove(b)
 
@@ -318,6 +394,7 @@ while run:
             globals.globals_dict["bullets"].remove(b)
 
 
+
     for t in torpedoes:
         if not t.exploding:
             if t.parent != -1:
@@ -325,11 +402,6 @@ while run:
                     t.explode()
             for b in globals.globals_dict["bullets"]:
                 if t.rect.colliderect(b.rect):
-                    t.explode()
-            if p.laser_on:
-                if laser_mask.overlap(pygame.mask.from_surface(t.display_image),
-                        (t.rect.x - t.display_image.get_width() / 2 - (laser_rect.x),
-                            (t.rect.y - t.display_image.get_height() / 2) - (laser_rect.y))):
                     t.explode()
         if t.exploding and p.mask.overlap(t.mask,
                     (t.x - t.display_image.get_width() / 2 - (p.x - p.display_image.get_width() / 2),
@@ -349,18 +421,29 @@ while run:
 
     # ------Blit Zone Start------
 
-    if p.laser_on:
-        pygame.draw.line(screen, (15,225,15), (750, 500), (750 + -1000 * math.sin(math.radians(p.angle)),
-                                                         500 + -1000 *math.cos(math.radians(p.angle))), width=5)
-        for i in enemies:
-            if i.alive and i.mask.overlap(laser_mask, (laser_rect.left-i.rect.left,laser_rect.top -i.rect.top)):
-                i.health -= 5
+    for l in globals.globals_dict["lasers"]:
+        if l.is_on:
+            start_pos = (l.origin[0] - camera_pos[0], l.origin[1] - camera_pos[1])
+            if l.angle == 0:
+                end_pos = (start_pos[0], -10)
+            elif l.angle == 90:
+                end_pos = (-10, start_pos[1])
+            elif l.angle == 180:
+                end_pos = (start_pos[0], size[1] + 10)
+            elif l.angle == 270:
+                end_pos = (size[0] + 10, start_pos[1])
+            elif l.angle < 180:
+                end_pos = (-10, start_pos[1] - (1/math.tan(math.radians(l.angle)) * (start_pos[0] + 10)))
+            else:
+                end_pos = (size[0] + 10, start_pos[1] + (1/math.tan(math.radians(l.angle)) * ( size[0] + 10 - start_pos[0])))
+
+
+            pygame.draw.line(screen, l.color, start_pos, end_pos, l.width)
 
     for i in globals.globals_dict["bullets"]:
         pygame.draw.rect(screen, i.color, i.rect)
 
     screen.blit(p.display_image, p.rect)
-
 
     for i in enemies:
         if i.alive:

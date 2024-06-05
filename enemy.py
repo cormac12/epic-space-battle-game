@@ -1,38 +1,19 @@
 import pygame
 import globals
 import math
+from laser import Laser
 
 
 
 class Enemy:
-    def __init__(self, x, y, vx, vy, type):
+    def __init__(self, x, y, vx, vy, type, index):
         self.type = type  # type 0 is a basic fighter type 1 is a gunship
         self.angle = 0
+        self.index = index
 
-        if self.type == 0:
-            self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
-                "spaceship2.png")}
-            self.image_index = "engine off"
 
-            self.health = 50
-            self.main_engine_str = 0.18
-            self.turn_rate = 8
 
-            self.ai_mode = 0
-        elif self.type == 1:
-            # TEMPORARY IMAGE CODE
-            self.images = {"engine off": pygame.image.load("gunship 00.png"), "engine on": pygame.image.load(
-                "gunship 11.png")}
-            self.image_index = "engine off"
 
-            self.health = 500
-            self.main_engine_str = .05
-            self.turn_rate = 1.5
-
-            self.ai_mode = 2
-
-        self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
-        self.mask = pygame.mask.from_surface(self.display_image)
 
         self.engine_on = False
 
@@ -43,10 +24,43 @@ class Enemy:
         self.vy = vy
         self.alive = True
 
+        if self.type == 0:
+            self.images = {"engine off": pygame.image.load("spaceship2 off.png"), "engine on": pygame.image.load(
+                "spaceship2.png")}
+            self.image_index = "engine off"
+
+            self.health = 50
+            self.main_engine_str = 0.25
+            self.turn_rate = 8
+
+            self.ai_mode = 0
+        elif self.type == 1:
+            # TEMPORARY IMAGE CODE
+            self.images = {"engine off": pygame.image.load("gunship 00.png"), "engine on": pygame.image.load(
+                "gunship 11.png")}
+            self.image_index = "engine off"
+
+            self.health = 1000
+            self.main_engine_str = .05
+            self.turn_rate = 1
+
+            self.ai_mode = 2
+            self.laser_index = len(globals.globals_dict["lasers"])
+            globals.globals_dict["lasers"].append(Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 10, self.index))
+
+            self.last_laser_time = 0
+            self.sweep_direction = 0
+            self.start_angle = 0
+            self.laser_is_charging = False
+            self.laser_is_on = False
+
 
         self.torpedo_cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
         self.torpedo_cool_down_duration = 60  # How long the wait is before another torpedo can be fired.
 
+
+        self.display_image = pygame.transform.rotate(self.images[self.image_index], self.angle)
+        self.mask = pygame.mask.from_surface(self.display_image)
         self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
                     self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2,
                     self.display_image.get_width(),
@@ -55,7 +69,6 @@ class Enemy:
     def rotate(self, direction):
         if direction == "clockwise":
             self.angle -= self.turn_rate
-
 
         elif direction == "counterclockwise":
             self.angle += self.turn_rate
