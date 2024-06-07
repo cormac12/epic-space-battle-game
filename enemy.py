@@ -29,7 +29,7 @@ class Enemy:
                 "spaceship2.png")}
             self.image_index = "engine off"
 
-            self.health = 50
+            self.health = 80
             self.main_engine_str = 0.25
             self.turn_rate = 8
 
@@ -46,7 +46,7 @@ class Enemy:
 
             self.ai_mode = 2
             self.laser_index = len(globals.globals_dict["lasers"])
-            globals.globals_dict["lasers"].append(Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 10, self.index))
+            globals.globals_dict["lasers"].append(Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 15, self.index))
 
             self.last_laser_time = 0
             self.sweep_direction = 0

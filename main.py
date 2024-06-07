@@ -92,6 +92,9 @@ screen = pygame.display.set_mode(size)
 score = 0
 display_score = my_font.render("Score: " + str(score), True, (255, 255, 255))
 
+radar_image = pygame.image.load("radar.png")
+player_icon = pygame.image.load("player icon.png")
+
 # The loop will carry on until the user exits the game (e.g. clicks the close button).
 run = True
 
@@ -106,7 +109,7 @@ globals.globals_dict["player_y"] = p.y
 globals.globals_dict["camera_pos"] = camera_pos
 globals.globals_dict["frame"] = 0
 globals.globals_dict["bullets"] = []
-globals.globals_dict["lasers"] = [Laser((p.x, p.y), p.angle, 5, (10, 255, 10), 8, -1)]
+globals.globals_dict["lasers"] = [Laser((p.x, p.y), p.angle, 5, (10, 255, 10), 4, -1)]
 
 enemies = [Enemy(100, 100, 2, 2, 1, 0), Enemy(200, 200, 2, 2, 0, 1)]
 torpedoes = []
@@ -202,11 +205,17 @@ while run:
                 else:
                     e.ai_mode = 3
             elif e.ai_mode == 3:
-                if not e.get_distance_to_player() < 700:
-                    e.target_vector(e.get_angle_to_player(), 3, p.vx, p.vy)
+                e.laser_is_on = False
+                e.last_laser_time = frame
+                e.sweep_direction = 0
+                if not e.get_distance_to_player() < math.sqrt((e.vx - p.vx)**2 + (e.vy - p.vy)**2)**(2)*15:
+                    e.target_vector(e.get_angle_to_player(), e.get_distance_to_player()/250, p.vx, p.vy)
                 else:
                     e.ai_mode = 4
             elif e.ai_mode == 4:
+                e.laser_is_on = False
+                e.last_laser_time = frame
+                e.sweep_direction = 0
                 if math.sqrt((e.vx - p.vx)**2 + (e.vy - p.vy)**2) > 1:
                     e.target_vector(e.get_angle_to_player(), 0, p.vx, p.vy)
                 else:
@@ -247,7 +256,7 @@ while run:
         elif keys[pygame.K_q]:
             p.rotate("counterclockwise", .75)
 
-
+    player_icon_display = pygame.transform.rotate(player_icon, p.angle)
 
     globals.globals_dict["lasers"][0].set_angle(p.angle)
     globals.globals_dict["lasers"][0].set_pos(p.x, p.y)
@@ -297,7 +306,6 @@ while run:
             elif event.y < 0 and p.current_weapon > 0:
                 p.current_weapon -= 1
 
-            torpedoes.append(Torpedo(p.x, p.y, p.vx, p.vy, get_angle_to_point(750, 500, pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]), False, -1, -1))
 
         elif event.type == pygame.QUIT:  # If user clicked close
             run = False
@@ -371,10 +379,16 @@ while run:
 
     for i in range(len(enemies)):
         for b in globals.globals_dict["bullets"]:
-            if enemies[i].alive and enemies[i].rect.colliderect(b.rect) and (b.parent != e.index or b.start_frame + 30 <= frame):
-                enemies[i].health -= b.damage
-                globals.globals_dict["bullets"].remove(b)
-
+            if enemies[i].type == 0:
+                if enemies[i].alive and enemies[i].rect.colliderect(b.rect) and (b.parent != e.index or b.start_frame + 30 <= frame):
+                    enemies[i].health -= b.damage
+                    globals.globals_dict["bullets"].remove(b)
+            elif enemies[i].type == 1:
+                if (enemies[i].alive and enemies[i].mask.overlap(pygame.Mask(b.size, True), (b.x - (enemies[i].x - enemies[i].display_image.get_width()/2),
+                                                                                            b.y - (enemies[i].y - enemies[i].display_image.get_height()/2))) and
+                        (b.parent != e.index or b.start_frame + 30 <= frame)):
+                    enemies[i].health -= b.damage
+                    globals.globals_dict["bullets"].remove(b)
 
         for t in torpedoes:
             if not t.exploding:
@@ -387,7 +401,7 @@ while run:
                 enemies[i].health -= 25
 
     for b in globals.globals_dict["bullets"]:
-        if p.mask.overlap(pygame.Mask((1,1), True), (b.x-(p.x-p.display_image.get_width()/2), b.y - (p.y - p.display_image.get_height()/2)))\
+        if p.mask.overlap(pygame.Mask(b.size, True), (b.x-(p.x-p.display_image.get_width()/2), b.y - (p.y - p.display_image.get_height()/2)))\
                 and (b.parent != -1 or b.start_frame + 30 <= frame):
 
             p.health -= b.damage
@@ -464,6 +478,13 @@ while run:
 
     else:
         pygame.draw.rect(screen, (100, 150, 255), energy_bar)
+
+    screen.blit(radar_image, (5,size[1]-260))
+    screen.blit(player_icon_display, (132.5-player_icon_display.get_width()/2, size[1]-132.5-player_icon_display.get_height()/2))
+    for e in enemies:
+        if e.get_distance_to_player() < 5400:
+            pygame.draw.rect(screen, (255,0,0), pygame.Rect(132.5+math.sin(math.radians(e.get_angle_to_player()))*(e.get_distance_to_player()/50+6.5),
+                                                            size[1]-132.5+math.cos(math.radians(e.get_angle_to_player()))*(e.get_distance_to_player()/50+6.5), 4,4))
 
     # ------Blit Zone End------
 

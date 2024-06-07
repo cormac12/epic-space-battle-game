@@ -75,7 +75,7 @@ class Player:
 
     def fire_point_defense(self, angle):
         globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
-                                                      self.vy - 5 * math.cos(math.radians(angle)), (2,2), (255,0,0), 10, -1))
+                                                      self.vy - 5 * math.cos(math.radians(angle)), (2,2), (255,0,0), 20, -1))
 
         self.energy -= 7
 
