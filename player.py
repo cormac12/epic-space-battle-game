@@ -2,6 +2,7 @@ import math
 import pygame
 from bullet import Bullet
 import globals
+from laser import Laser
 
 
 class Player:
@@ -35,9 +36,10 @@ class Player:
         self.main_engine_str = .15
 
         self.laser_on = False
+        self.laser = Laser((self.x, self.y), self.angle, 5, (10, 255, 10), 7, -1)
 
         self.current_weapon = 0
-        self.weapon_names = ["Laser", "Point Defense", "Railgun"]
+
 
         self.live_rounds = []
         self.fire_rate = 1 # frames per round
@@ -75,13 +77,13 @@ class Player:
 
     def fire_point_defense(self, angle):
         globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 5 * math.sin(math.radians(angle)),
-                                                      self.vy - 5 * math.cos(math.radians(angle)), (2,2), (255,0,0), 20, -1))
+                                                      self.vy - 5 * math.cos(math.radians(angle)), (3,3), (255,50,0), 8, -1))
 
         self.energy -= 7
 
     def fire_railgun(self, angle):
-        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 15 * math.sin(math.radians(angle)),
-                                                      self.vy - 15 * math.cos(math.radians(angle)), (4,4), (255,255,255), 100, -1))
+        globals.globals_dict["bullets"].append(Bullet(self.x, self.y, self.vx - 30 * math.sin(math.radians(angle)),
+                                                      self.vy - 30 * math.cos(math.radians(angle)), (5,5), (200,200, 255), 200, -1))
         self.last_railgun_time = globals.globals_dict["frame"]
 
         self.energy -= 250

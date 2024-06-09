@@ -41,18 +41,26 @@ class Enemy:
             self.image_index = "engine off"
 
             self.health = 1000
-            self.main_engine_str = .05
-            self.turn_rate = 1
+            self.main_engine_str = .075
+            self.turn_rate = 1.5
 
             self.ai_mode = 2
-            self.laser_index = len(globals.globals_dict["lasers"])
-            globals.globals_dict["lasers"].append(Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 15, self.index))
+            self.laser = Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 15, self.index)
 
             self.last_laser_time = 0
             self.sweep_direction = 0
             self.start_angle = 0
             self.laser_is_charging = False
             self.laser_is_on = False
+
+        elif type == 2:
+            self.images = {"target": pygame.image.load("target.png")}
+            self.image_index = "target"
+            self.health = 100
+            self.main_engine_str = 0
+            self.turn_rate = 0
+
+            self.ai_mode = None
 
 
         self.torpedo_cool_down_start = globals.globals_dict["frame"]  # Records the frame when the last torpedo was fired
@@ -224,6 +232,7 @@ class Enemy:
             if on_target and deviation_magnitude <= self.main_engine_str:
                 self.vx = (player_vx + target_vx)
                 self.vy = (player_vy + target_vy)
+                self.image_index = "engine on"
 
                 # print("X", self.vx)
                 # print("Y", self.vy)
