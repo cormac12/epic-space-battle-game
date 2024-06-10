@@ -117,8 +117,6 @@ has_scrolled = False
 gunships = 1
 fighters = 1
 
-score = 0
-display_score = impact.render("SCORE: " + str(score), True, (255, 255, 255))
 
 radar_image = pygame.image.load("radar.png")
 player_icon = pygame.image.load("player icon.png")
@@ -161,9 +159,9 @@ start_button_rect = pygame.Rect(size[0]/2-start_button_text.get_width()/2, size[
 game_over_text = impact.render("GAME OVER", True, (255,0,0))
 game_over_rect = pygame.Rect(size[0]/2-game_over_text.get_width()/2, size[1]/4-game_over_text.get_height()/2,
                                 game_over_text.get_width(), game_over_text.get_height())
-final_score_text = None
+final_wave_text = None
 
-print(start_button_text.get_width()/2)
+
 
 camera_pos = (0,0)
 
@@ -286,7 +284,6 @@ while run:
                                     e.laser_is_on = False
                                     e.last_laser_time = frame
                                     e.sweep_direction = 0
-                                    print("Done")
 
 
                     else:
@@ -314,12 +311,6 @@ while run:
                     e.laser.is_on = e.laser_is_on
 
             else:
-                if e.type == 0:
-                    score += 100
-                elif e.type == 1:
-                    score += 500
-
-                display_score = impact.render("SCORE: " + str(score), True, (255, 255, 255))
 
                 enemies.pop(i)
                 for x in range(len(enemies)):
@@ -412,7 +403,6 @@ while run:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if tutorial_stage == 2:
-                        print("TRUE")
                         has_clicked = True
 
 
@@ -619,7 +609,6 @@ while run:
         elif tutorial_stage == 3 and len(enemies) == 0:
             tutorial_stage = 4
 
-        print(tutorial_stage)
 
         display_fps = arial.render(str(round(sum(fps_list)/len(fps_list))) + "/" + str(target_fps), True, (255,255,255))
         screen.fill((0, 0, 0))
@@ -684,7 +673,6 @@ while run:
 
 
         screen.blit(display_fps, (0, size[1]-30))
-        screen.blit(display_score, (0,0))
         # screen.blit(i, (100-p.x, 100-p.y))
 
         screen.blit(health_icon, (10, 185))
@@ -739,13 +727,14 @@ while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # If user clicked close
                 run = False
-        if final_score_text == None:
-            final_score_text = impact.render("YOUR SCORE: " + str(score), False, (255,255,255))
-            final_score_rect = pygame.Rect(size[0]/2-final_score_text.get_width()/2, size[1]/2-final_score_text.get_height()/2,
-                                final_score_text.get_width(), final_score_text.get_height()
+        if final_wave_text == None:
+            final_wave_text = impact.render("YOU SURVIVED: " + str(wave - 1) + (" WAVE" if wave == 2 else " WAVES"),
+                                            False, (255,255,255))
+            final_wave_rect = pygame.Rect(size[0]/2-final_wave_text.get_width()/2, size[1]/2-final_wave_text.get_height()/2,
+                                final_wave_text.get_width(), final_wave_text.get_height()
                                 )
             # Blit Zone Start
-            screen.blit(final_score_text,final_score_rect)
+            screen.blit(final_wave_text,final_wave_rect)
             screen.blit(game_over_text, game_over_rect)
 
 

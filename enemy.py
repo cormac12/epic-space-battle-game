@@ -205,8 +205,6 @@ class Enemy:
         deviation_x = target_vx + (player_vx - self.vx)
         deviation_y = target_vy + (player_vy - self.vy)
 
-
-
         if deviation_y != 0:
             if deviation_x <= 0 and deviation_y <= 0:
                 deviation_angle = math.degrees(math.atan(deviation_x/deviation_y))
