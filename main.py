@@ -239,6 +239,7 @@ while run:
 
         # ------ Update World Objects ---------
 
+        # updating torpedoes
         for t in torpedoes:
             t.update()
             if not t.exploding and frame > t.start_frame + 150:
@@ -247,7 +248,7 @@ while run:
                 torpedoes.remove(t)
 
 
-
+        # updating enemies
         i = 0
         for e in enemies:
             if e.alive:
@@ -312,7 +313,7 @@ while run:
 
             else:
 
-                enemies.pop(i)
+                enemies.remove(e)
                 for x in range(len(enemies)):
                     if x >= i:
                         enemies[x].index -= 1
@@ -321,13 +322,7 @@ while run:
                         torpedoes[t].explode()
                     elif torpedoes[t].parent > i:
                         torpedoes[t].parent -= 1
-
-
-
             i += 1
-
-
-
 
         for i in globals.globals_dict["bullets"]:
             i.update()
@@ -357,7 +352,7 @@ while run:
         if keys[pygame.K_DOWN]:
             target_fps /= 1.1
 
-
+        # weapon firing
         if pygame.mouse.get_pressed()[0] and not p.power_off and tutorial_stage >= 2:
             if p.current_weapon == 0:
                 p.laser_on = True
@@ -372,9 +367,6 @@ while run:
                 if p.last_railgun_time + p.railgun_cooldown <= frame:
                     p.fire_railgun(get_angle_to_point(750,500,mouse_pos[0],mouse_pos[1])
                                          + random.randint(-10,10)/10)
-
-
-
         else:
             p.laser_on = False
 
@@ -387,9 +379,9 @@ while run:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w and not p.power_off:
                     p.start_engine()
-                elif event.key == pygame.K_SPACE:
+                elif event.key == pygame.K_SPACE and tutorial_stage < 4:
                     tutorial_stage = 4
-                    enemies.pop(0)
+                    enemies = []
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     p.stop_engine()
@@ -404,8 +396,8 @@ while run:
                 if event.button == 1:
                     if tutorial_stage == 2:
                         has_clicked = True
-
-
+                elif event.button == 3:
+                    enemies = []
 
 
             elif event.type == pygame.QUIT:  # If user clicked close
@@ -416,12 +408,12 @@ while run:
             p.laser_on = False
 
 
-        # If there are more than a thousand projectiles in the world, the oldest will be deleted
-        while len(globals.globals_dict["bullets"]) > 1000:
+        # If there are more than 500 projectiles in the world, the oldest will be deleted
+        while len(globals.globals_dict["bullets"]) > 500:
             globals.globals_dict["bullets"].pop(0)
 
 
-
+        # enemy respawns
         if len(enemies) == 0 and tutorial_stage == 4:
             wave += 1
 
@@ -452,64 +444,51 @@ while run:
 
 
 
-        enemy_index = -1
 
+
+        # enemy lasers
         for i in enemies:
             if i.type == 1:
                 l = i.laser
                 if l.is_on:
                     for e in enemies:
-                        enemy_index += 1
                         angle = get_angle_to_point(l.origin[0], l.origin[1], e.x, e.y)
                         if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (
                                 angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                             and angle <= (l.angle + 90) % 360)):
 
-                            if l.parent != enemy_index:
-                                has_been_hit = False
+                            if i != e:
                                 if e.type == 1:
-                                    for v in l.vectors:
-                                        cross_section = get_mask_cross_section(e.mask, (e.x-e.display_image.get_width()/2,
-                                                                                        e.y - e.display_image.get_height()/2), v[0])
-                                        if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
+                                    if l.collide_rect(e.rect, (e.x - e.display_image.get_width() / 2,
+                                                               e.y - e.display_image.get_height() / 2)):
+                                        if l.collide_mask(e.mask, (e.x - e.display_image.get_width() / 2,
+                                                                   e.y - e.display_image.get_height() / 2)):
                                             e.health -= l.damage
-                                            has_been_hit = True
                                 elif e.type == 0:  # type 0 enemies are so small that you can't really tell that I use rect collision
-                                    for v in l.vectors:
-                                        cross_section = get_rect_cross_section(e.rect, (e.x-e.display_image.get_width()/2,
-                                                                                        e.y - e.display_image.get_height()/2), v[0])
-                                        if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
-                                            e.health -= l.damage
-                                            has_been_hit = True
+                                    if l.collide_rect(e.rect, (e.x - e.display_image.get_width() / 2,
+                                                               e.y - e.display_image.get_height() / 2)):
+                                        e.health -= l.damage
                     for t in torpedoes:
                         angle = get_angle_to_point(l.origin[0], l.origin[1], t.x, t.y)
                         if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (
                                 angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                                 and angle <= (l.angle + 90) % 360)):
                             if not t.exploding:
-                                for v in l.vectors:
-                                    cross_section = get_rect_cross_section(t.rect, (t.x - t.display_image.get_width()/2,
-                                                                                    t.y - t.display_image.get_height()/2), v[0])
-                                    if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]):
-                                        t.explode()
+                                if l.collide_rect(t.rect, (t.x-t.rect.width/2, t.y-t.rect.height/2)):
+                                    t.explode()
 
-                    has_been_hit = False
+
                     angle = get_angle_to_point(l.origin[0], l.origin[1], p.x, p.y)
                     if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (
                             angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                         and angle <= (l.angle + 90) % 360)):
-                        for v in l.vectors:
-                            cross_section = get_mask_cross_section(p.mask, (p.x - p.display_image.get_width() / 2,
-                                                                            p.y - p.display_image.get_height() / 2), v[0])
-                            if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]) and not has_been_hit:
+
+                        if l.collide_rect(p.rect, (p.x-p.rect.width/2, p.y-p.rect.height/2)):
+                            if l.collide_mask(p.mask, (p.x - p.rect.width / 2, p.y - p.rect.height / 2)):
                                 p.health -= l.damage
-                                has_been_hit = True
 
 
-
-
-
-
+        # player laser
         l = p.laser
         if l.is_on:
             for e in enemies:
@@ -517,40 +496,33 @@ while run:
                 if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                                                                                and angle <= (l.angle + 90)%360)):
 
-                    has_been_hit = False
+
                     if e.type == 1 or e.type == 2:
-                        for v in l.vectors:
-                            cross_section = get_mask_cross_section(e.mask, (e.x - e.display_image.get_width() / 2,
-                                                                            e.y - e.display_image.get_height() / 2),
-                                                                   v[0])
-                            if line_vector_collision(cross_section[0], cross_section[1], v[0],
-                                                     v[1]) and not has_been_hit:
-                                e.health -= l.damage
-                                has_been_hit = True
+
+                        if l.collide_rect(e.rect, (e.x - e.display_image.get_width() / 2,
+                                                                            e.y - e.display_image.get_height() / 2)):
+                            if l.collide_mask(e.mask, (e.x - e.display_image.get_width() / 2,
+                                                                                e.y - e.display_image.get_height() / 2)):
+                                e.health-= l.damage
+
+
                     elif e.type == 0:  # type 0 enemies are so small that you can't really tell that I use rect collision
-                        for v in l.vectors:
-                            cross_section = get_rect_cross_section(e.rect, (e.x - e.display_image.get_width() / 2,
-                                                                            e.y - e.display_image.get_height() / 2),
-                                                                   v[0])
-                            if line_vector_collision(cross_section[0], cross_section[1], v[0],
-                                                     v[1]) and not has_been_hit:
-                                e.health -= l.damage
-                                has_been_hit = True
+                        if l.collide_rect(e.rect, (e.x - e.display_image.get_width() / 2,
+                                                                            e.y - e.display_image.get_height() / 2)):
+                            e.health -= l.damage
+
 
             for t in torpedoes:
                 angle = get_angle_to_point(l.origin[0], l.origin[1], t.x, t.y)
                 if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                                                                                and angle <= (l.angle + 90)%360)):
                     if not t.exploding:
-                        for v in l.vectors:
-                            cross_section = get_rect_cross_section(t.rect, (t.x - t.display_image.get_width() / 2,
-                                                                            t.y - t.display_image.get_height() / 2), v[0])
-                            if line_vector_collision(cross_section[0], cross_section[1], v[0], v[1]):
-                                t.explode()
-
+                        if l.collide_rect(t.rect, (t.x-t.rect.width/2, t.y-t.rect.height/2)):
+                            t.explode()
 
 
         for i in range(len(enemies)):
+            # enemy bullet collision
             for b in globals.globals_dict["bullets"]:
                 if enemies[i].type == 0:
                     if enemies[i].alive and enemies[i].rect.colliderect(b.rect) and (b.parent != e.index or b.start_frame + 30 <= frame):
@@ -562,7 +534,7 @@ while run:
                             (b.parent != e.index or b.start_frame + 30 <= frame)):
                         enemies[i].health -= b.damage
                         globals.globals_dict["bullets"].remove(b)
-
+            # enemy torpedo collision
             for t in torpedoes:
                 if not t.exploding:
                     if t.parent != i:
@@ -573,15 +545,18 @@ while run:
                          (t.y-t.display_image.get_height()/2) - (enemies[i].y - enemies[i].display_image.get_height()/2))):
                     enemies[i].health -= 25
 
+
+
+
+
+        # player bullet collision
         for b in globals.globals_dict["bullets"]:
             if p.mask.overlap(pygame.Mask(b.size, True), (b.x-(p.x-p.display_image.get_width()/2), b.y - (p.y - p.display_image.get_height()/2)))\
                     and (b.parent != -1 or b.start_frame + 30 <= frame):
 
                 p.health -= b.damage
                 globals.globals_dict["bullets"].remove(b)
-
-
-
+        # player torpedo collision
         for t in torpedoes:
             if not t.exploding:
                 if t.parent != -1:

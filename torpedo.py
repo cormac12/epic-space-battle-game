@@ -64,9 +64,6 @@ class Torpedo:
             self.mask = pygame.mask.from_surface(self.display_image)
 
 
-
-
-
     def explode(self):
         if not self.exploding:
             self.exploding = True

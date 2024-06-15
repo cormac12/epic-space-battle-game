@@ -100,7 +100,6 @@ class Enemy:
         self.mask = pygame.mask.from_surface(self.display_image)
 
 
-
     def stop_engine(self):
         self.engine_on = False
         self.image_index = "engine off"
@@ -110,9 +109,11 @@ class Enemy:
                     self.display_image.get_height())
         self.mask = pygame.mask.from_surface(self.display_image)
 
+
     def accelerate(self):
         self.vy -= math.cos(math.radians(self.angle)) * self.main_engine_str
         self.vx -= math.sin(math.radians(self.angle)) * self.main_engine_str
+
 
     def update(self):
         if self.engine_on:
@@ -139,7 +140,6 @@ class Enemy:
             return 270
         else:
             return 90
-
 
 
     def get_distance_to_player(self):
@@ -190,10 +190,6 @@ class Enemy:
 
 
         return False
-
-
-
-
 
 
     def target_vector(self, direction, magnitude, player_vx, player_vy):
