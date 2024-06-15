@@ -52,7 +52,7 @@ class Laser:
             angles = []
             
             for corner in corners:
-                angles.append(globals.get_angle_to_point(r[0][0], r[0][1], corner[0], corner[0]))
+                angles.append(globals.get_angle_to_point(r[0][0], r[0][1], corner[0], corner[1]))
 
             min_angle = angles[0]
             max_angle = angles[0]
