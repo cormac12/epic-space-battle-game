@@ -27,6 +27,8 @@ class Player:
         self.vy = 0
 
         self.health = 1000
+        self.mass = 100
+
 
         self.energy = 1000
         self.energy_regen = 5
@@ -108,4 +110,21 @@ class Player:
             self.power_off = False
 
 
+    def move(self, offset, angle=None ):
+        if type(angle) == None:
+            self.x += offset[0]
+            self.y -= offset[1]
+        else:
+            self.x -= math.sin(math.radians(angle)) * offset
+            self.y -= math.cos(math.radians(angle)) * offset
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
 
+    def change_velocity(self, offset, angle=None):
+        if type(angle) == None:
+            self.vx += offset[0]
+            self.vy -= offset[1]
+        else:
+            self.vx -= math.sin(math.radians(angle)) * offset
+            self.vy -= math.cos(math.radians(angle)) * offset

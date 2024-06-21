@@ -32,17 +32,18 @@ class Enemy:
             self.health = 80
             self.main_engine_str = 0.25
             self.turn_rate = 8
+            self.mass = 10
 
             self.ai_mode = 0
         elif self.type == 1:
-            # TEMPORARY IMAGE CODE
             self.images = {"engine off": pygame.image.load("gunship 00.png"), "engine on": pygame.image.load(
                 "gunship 11.png")}
             self.image_index = "engine off"
 
             self.health = 1000
-            self.main_engine_str = .075
+            self.main_engine_str = .125
             self.turn_rate = 1.5
+            self.mass = 110
 
             self.ai_mode = 2
             self.laser = Laser((self.x, self.y), self.angle, 5,  (255, 10, 255), 15, self.index)
@@ -99,6 +100,31 @@ class Enemy:
                     self.display_image.get_height())
         self.mask = pygame.mask.from_surface(self.display_image)
 
+    def set_pos(self, pos):
+        self.x = pos[0]
+        self.y = pos[1]
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+
+    def move(self, offset, angle=None ):
+        if type(angle) == None:
+            self.x += offset[0]
+            self.y -= offset[1]
+        else:
+            self.x -= math.sin(math.radians(angle)) * offset
+            self.y -= math.cos(math.radians(angle)) * offset
+        self.rect = pygame.Rect(self.x - globals.globals_dict["camera_pos"][0] - self.display_image.get_width() / 2,
+                    self.y - globals.globals_dict["camera_pos"][1] - self.display_image.get_height() / 2, self.display_image.get_width(),
+                    self.display_image.get_height())
+
+    def change_velocity(self, offset, angle=None):
+        if type(angle) == None:
+            self.vx += offset[0]
+            self.vy -= offset[1]
+        else:
+            self.vx -= math.sin(math.radians(angle)) * offset
+            self.vy -= math.cos(math.radians(angle)) * offset
 
     def stop_engine(self):
         self.engine_on = False

@@ -311,6 +311,53 @@ while run:
                     e.laser.set_pos(e.x, e.y)
                     e.laser.is_on = e.laser_is_on
 
+                first_loop = True
+                if e.type == 0:
+
+                    while p.mask.overlap(pygame.Mask((e.rect.width, e.rect.height), True), (e.rect.x - p.rect.x, e.rect.y - p.rect.y)):
+                        e.move(1 * (p.mass/(p.mass+e.mass)), e.get_angle_to_player() + 180)
+                        p.move(1 * (e.mass/(p.mass+e.mass)), e.get_angle_to_player())
+                        if first_loop:
+                            velocity_diff = math.sqrt((e.vx - p.vx)**2 + (e.vy - p.vy)**2)
+                            bounce_strength = velocity_diff * 0.25
+                            e.change_velocity(bounce_strength * (p.mass/(p.mass+e.mass)), e.get_angle_to_player() + 180)
+                            p.change_velocity(bounce_strength * (e.mass / (p.mass + e.mass)), e.get_angle_to_player())
+                            first_loop = False
+
+                elif e.type == 1:
+                    while p.mask.overlap(e.mask, (e.rect.x - p.rect.x, e.rect.y - p.rect.y)):
+                        e.move(1 * (p.mass/(p.mass+e.mass)), e.get_angle_to_player() + 180)
+                        p.move(1 * (e.mass/(p.mass+e.mass)), e.get_angle_to_player())
+                        if first_loop:
+                            velocity_diff = math.sqrt((e.vx - p.vx)**2 + (e.vy - p.vy)**2)
+                            bounce_strength = velocity_diff * 0.25
+                            e.change_velocity(bounce_strength * (p.mass/(p.mass+e.mass)), e.get_angle_to_player() + 180)
+                            p.change_velocity(bounce_strength * (e.mass / (p.mass + e.mass)), e.get_angle_to_player())
+                            first_loop = False
+
+
+                for a in enemies:
+                    if e != a:
+                        if e.type == 0:
+                            if a.type == 0:
+                                while e.rect.colliderect(a.rect):
+                                    e.move(a.mass/(e.mass+a.mass), get_angle_to_point(a.x, a.y, e.x, e.y))
+                                    a.move(e.mass / (e.mass + a.mass), get_angle_to_point(e.x, e.y, a.x, a.y))
+
+                            elif a.type == 1:
+                                while a.mask.overlap(pygame.Mask(e.rect.size, True),
+                                                     (e.rect.x - a.rect.x, e.rect.y-a.rect.y)
+                                                     ):
+                                    e.move(a.mass/(e.mass+a.mass), get_angle_to_point(a.x, a.y, e.x, e.y))
+                                    a.move(e.mass / (e.mass + a.mass), get_angle_to_point(e.x, e.y, a.x, a.y))
+                        elif e.type == 1:
+                            if a.type == 1:
+                                while a.mask.overlap(a.mask,
+                                                     (e.rect.x - a.rect.x, e.rect.y-a.rect.y)
+                                                     ):
+                                    e.move(a.mass/(e.mass+a.mass), get_angle_to_point(a.x, a.y, e.x, e.y))
+                                    a.move(e.mass / (e.mass + a.mass), get_angle_to_point(e.x, e.y, a.x, a.y))
+
             else:
 
                 enemies.remove(e)
@@ -437,9 +484,9 @@ while run:
                 enemies.append(Enemy(x, y,
                                      (p.vx + random.randint(-20, 20)/10), (p.vy + random.randint(-20, 20)/10), 1, len(enemies)))
 
-            if gunships < 3:
+            if gunships < 30:
                 gunships += .5
-            if fighters < 5:
+            if fighters < 50:
                 fighters += 1
 
 
@@ -496,14 +543,14 @@ while run:
                 if (angle >= (l.angle - 90) % 360 or angle >= (l.angle - 90)) and (angle <= (l.angle + 90) or (l.angle + 90 > 360
                                                                                                                and angle <= (l.angle + 90)%360)):
 
-
                     if e.type == 1 or e.type == 2:
 
-                        if l.collide_rect(e.rect, (e.x - e.display_image.get_width() / 2,
-                                                                            e.y - e.display_image.get_height() / 2)):
+                        if l.collide_rect(e.rect, (e.x - e.rect.width / 2, e.y - e.rect.height / 2)):
+                            print("RECT")
                             if l.collide_mask(e.mask, (e.x - e.display_image.get_width() / 2,
                                                                                 e.y - e.display_image.get_height() / 2)):
                                 e.health-= l.damage
+                                print(True)
 
 
                     elif e.type == 0:  # type 0 enemies are so small that you can't really tell that I use rect collision
@@ -642,6 +689,7 @@ while run:
         for i in enemies:
             if i.alive:
                 screen.blit(i.display_image, i.rect)
+
 
         for t in torpedoes:
             screen.blit(t.display_image, t.rect)
